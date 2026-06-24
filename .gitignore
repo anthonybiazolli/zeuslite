@@ -1,0 +1,16 @@
+# Dependências do Node
+node_modules/
+
+# Bancos de dados locais
+usuarios.json
+campanhas.json
+mensagens_apagadas.json
+wpp_cache.json
+
+# Arquivos de log e sistema operacional
+npm-debug.log
+.DS_Store
+Thumbs.db
+
+# Arquivos de ambiente
+.env

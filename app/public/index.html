@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeus-Lite - Dashboard Integrada</title>
+    <style>
+        :root {
+            --bg-body: #0d0f12; --bg-card: #161b22; --bg-input: #0d1117;
+            --border-color: #30363d; --text-main: #c9d1d9; --text-muted: #8b949e;
+            --zeus-green: #23a55a; --zeus-blue: #58a6ff; --zeus-red: #f85149; --zeus-purple: #ab7ff8;
+            --wpp-dark-sidebar: #111b21; --wpp-dark-chat: #0b141a;
+            --wpp-bubble-in: #202c33; --wpp-bubble-out: #005c4b;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-body); margin: 0; padding: 0; color: var(--text-main); }
+        .login-wrapper { max-width: 420px; margin: 100px auto; background: var(--bg-card); padding: 30px; border-radius: 10px; border: 1px solid var(--border-color); display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.8); }
+        .login-wrapper.active { display: block; }
+        #view-main { display: none; }
+        
+        .navbar { background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); display: flex; padding: 0 20px; gap: 10px; }
+        .nav-brand { color: var(--zeus-green); font-weight: 800; font-size: 20px; padding: 15px 20px 15px 0; letter-spacing: 1px; }
+        .nav-item { background: none; border: none; color: var(--text-muted); padding: 20px 15px; font-size: 14px; cursor: pointer; font-weight: bold; border-bottom: 3px solid transparent;}
+        .nav-item:hover { color: var(--text-main); }
+        .nav-item.active { color: var(--zeus-blue); border-bottom-color: var(--zeus-blue); }
+        
+        .main-content { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: none; }
+        .section { background-color: #1c2128; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        h2 { font-size: 18px; margin-top: 0; margin-bottom: 15px; color: var(--zeus-blue); }
+        
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-input); color: var(--text-main); box-sizing: border-box; }
+        button { background-color: var(--zeus-green); color: white; border: none; padding: 12px 20px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px;}
+        button:hover { filter: brightness(1.1); }
+        .btn-blue { background-color: var(--zeus-blue); } .btn-red { background-color: var(--zeus-red); } .btn-gray { background-color: #30363d; }
+        .btn-inline { width: auto; padding: 8px 15px; margin-right: 5px; font-size: 12px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background-color: var(--bg-input); border-radius: 6px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        th { background-color: #21262d; color: var(--text-muted); }
+        
+        .status-box { padding: 12px; border-radius: 6px; font-weight: bold; text-align: center; display: none; margin-top: 10px;}
+        .impersonate-banner { background-color: var(--zeus-purple); color: black; padding: 8px; text-align: center; font-weight: bold; font-size: 13px; display: none; }
+
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:none; justify-content:center; align-items:center; }
+        .modal-box { background: var(--bg-card); padding: 25px; border-radius: 10px; border: 1px solid var(--border-color); width: 350px; text-align: center;}
+
+        .flex-row { display: flex; gap: 20px; }
+        .col-left { flex: 1.5; }
+        .col-right { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        
+        .msg-block { background: var(--bg-input); border: 1px dashed var(--border-color); padding: 15px; margin-bottom: 15px; border-radius: 8px; position: relative;}
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: var(--zeus-red); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 10px;}
+        
+        .progress-container { background-color: #30363d; border-radius: 4px; overflow: hidden; margin-top: 5px; width: 100%; height: 12px; }
+        .progress-bar { background-color: var(--zeus-green); height: 100%; width: 0%; transition: width 0.4s ease; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .badge-open { background-color: rgba(35, 165, 90, 0.2); color: var(--zeus-green); }
+        .badge-closed { background-color: rgba(248, 81, 73, 0.2); color: var(--zeus-red); }
+
+        /* WPP WEB CLONE UI */
+        .wpp-web-layout { display: flex; height: 650px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background-color: var(--wpp-dark-chat); position: relative;}
+        .wpp-sidebar { width: 320px; background-color: var(--wpp-dark-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .wpp-sidebar-header { padding: 15px; background-color: #202c33; border-bottom: 1px solid var(--border-color); font-weight: bold; font-size: 14px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
+        
+        .wpp-chat-list { flex-grow: 1; overflow-y: auto; }
+        .wpp-chat-item { padding: 15px; border-bottom: 1px solid #222c32; cursor: pointer; display: flex; flex-direction: column; gap: 4px;}
+        .wpp-chat-item:hover, .wpp-chat-item.active { background-color: #2a3942; }
+        .wpp-chat-name { font-weight: bold; font-size: 14px; color: #e9edef; }
+        .wpp-chat-lastmsg { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .wpp-container { flex-grow: 1; display: flex; flex-direction: column; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-opacity: 0.05; position: relative;}
+        .wpp-chat-header { padding: 15px; background-color: #202c33; border-bottom: 1px solid var(--border-color); font-weight: bold; color: #e9edef; font-size: 15px;}
+        .wpp-messages-body { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background-color: rgba(11,20,26,0.92); }
+        
+        .wpp-bubble { padding: 8px 12px; border-radius: 8px; max-width: 70%; font-size: 13px; line-height: 19px; word-wrap: break-word; color: #e9edef; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+        .wpp-bubble.in { background-color: var(--wpp-bubble-in); align-self: flex-start; border-top-left-radius: 0; }
+        .wpp-bubble.out { background-color: var(--wpp-bubble-out); align-self: flex-end; border-top-right-radius: 0; }
+        
+        .msg-actions { position: absolute; right: -25px; top: 5px; display: none; gap: 5px;}
+        .wpp-bubble.out:hover .msg-actions { display: flex; }
+        .msg-btn { background: none; border: none; cursor: pointer; padding: 2px; font-size: 12px; opacity: 0.6; }
+        .msg-btn:hover { opacity: 1; }
+
+        .wpp-footer-input { padding: 12px; background-color: #202c33; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
+        .wpp-footer-input input { margin-bottom: 0; flex-grow: 1; background-color: #2a3942; border: none; padding: 12px; color: var(--text-main); border-radius: 6px;}
+        .tool-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); padding: 5px; width: 40px;}
+        .tool-btn:hover { color: var(--zeus-green); }
+        
+        .emoji-picker { position: absolute; bottom: 70px; left: 10px; background: #202c33; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: none; grid-template-columns: repeat(6, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; }
+        .emoji-item { cursor: pointer; font-size: 20px; text-align: center; }
+        .emoji-item:hover { transform: scale(1.2); }
+
+        .recording-box { display: none; align-items: center; gap: 10px; color: #f85149; font-weight: bold; flex-grow: 1; }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        .wpp-deleted { color: #f85149; font-style: italic; font-weight: bold; font-size: 11px;}
+        
+        .celular { width: 280px; height: 400px; border: 8px solid #2d333b; border-radius: 20px; background-color: #0b141a; display: flex; flex-direction: column; overflow: hidden; }
+        .celular-chat { padding: 10px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .balao { background-color: #005c4b; padding: 8px; border-radius: 8px 0 8px 8px; max-width: 85%; align-self: flex-end; margin-bottom: 8px; font-size: 12px; color: #e9edef; }
+    </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="modal-novo-chat">
+    <div class="modal-box">
+        <h2 style="margin-top:0;">Iniciar Nova Conversa</h2>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Digite o número com DDD (apenas números).</p>
+        <input type="text" id="iptModalNumero" placeholder="Ex: 41999999999">
+        <div style="display:flex; gap:10px;">
+            <button class="btn-gray" onclick="fecharModalNovoChat()">Cancelar</button>
+            <button class="btn-blue" onclick="confirmarNovoChat()">Iniciar Chat</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-novo-pin">
+    <div class="modal-box">
+        <h2 style="margin-top:0;">Autenticação via PIN</h2>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Insira o número do WhatsApp que você deseja conectar (com DDD).</p>
+        <input type="text" id="iptModalNumeroPin" placeholder="Ex: 41999999999">
+        <div style="display:flex; gap:10px;">
+            <button class="btn-gray" onclick="fecharModalPin()">Cancelar</button>
+            <button class="btn-blue" onclick="confirmarPin()">Gerar PIN</button>
+        </div>
+    </div>
+</div>
+
+<div id="banner-emp" class="impersonate-banner">Modo Emulação Ativo. <a href="#" onclick="cancelarEmulacao()" style="color:black; font-weight:bold; text-decoration:underline;">Sair da conta do cliente</a></div>
+
+<div class="auth-container">
+    <div class="login-wrapper active" id="box-login-p1">
+        <h1 style="text-align:center; color:var(--zeus-green); margin-bottom:5px; border:none;">ZEUS-LITE</h1>
+        <p style="text-align:center; color:var(--text-muted); font-size:13px; margin-bottom:25px; margin-top:0;">SaaS Portal Corporativo</p>
+        <input type="text" id="iptUser" placeholder="Seu usuário">
+        <input type="password" id="iptPass" placeholder="Sua senha">
+        <button onclick="loginPasso1()">Entrar</button>
+        <div id="login-err-p1" class="status-box" style="background: rgba(248,81,73,0.2); color: var(--zeus-red);"></div>
+    </div>
+
+    <div class="login-wrapper" id="box-login-2fa">
+        <h1 style="text-align:center; color:var(--zeus-blue); margin-bottom:10px; border:none;">Segurança 2FA</h1>
+        <div id="setup-2fa-area" style="display:none; text-align:center; margin-bottom:15px;">
+            <p style="font-size:13px;">Abra o <b>Google Authenticator</b> no celular e escaneie o código:</p>
+            <img id="img-qrcode-2fa" src="" style="border:4px solid white; border-radius:6px; margin:10px auto; max-width:180px; display:block;">
+            <p style="font-size:11px; color:var(--text-muted);">Código manual: <b id="text-secret-2fa"></b></p>
+        </div>
+        <p style="font-size:13px; text-align:center;">Insira o token de 6 dígitos gerado no app:</p>
+        <input type="text" id="iptToken2fa" placeholder="000000" maxlength="6" style="text-align:center; font-size:22px; letter-spacing:4px;">
+        <button onclick="loginVerificar2fa()">Confirmar Código</button>
+        <div id="login-err-2fa" class="status-box" style="background: rgba(248,81,73,0.2); color: var(--zeus-red);"></div>
+    </div>
+
+    <div class="login-wrapper" id="box-login-forcepass">
+        <h1 style="text-align:center; color:var(--zeus-purple); margin-bottom:5px; border:none;">Nova Senha</h1>
+        <p style="font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:20px;">Primeiro acesso detectado. Escolha uma senha pessoal definitiva para continuar:</p>
+        <input type="password" id="iptNewPass" placeholder="Nova senha segura">
+        <button onclick="alterarSenhaObrigatoria()">Salvar e Acessar</button>
+    </div>
+</div>
+
+<div id="view-main">
+    <nav class="navbar">
+        <div class="nav-brand">ZEUS-LITE</div>
+        <button class="nav-item active" id="tab-btn-conn" onclick="alternarAba('conn')">Conexões</button>
+        <button class="nav-item" id="tab-btn-chat" onclick="alternarAba('chat')">Chat ao Vivo</button>
+        <button class="nav-item" id="tab-btn-disp" onclick="alternarAba('disp')">Disparos & Campanhas</button>
+        <button class="nav-item" id="tab-btn-admin" onclick="alternarAba('admin')" style="display:none; color: var(--zeus-purple);">Painel Admin</button>
+        <button class="nav-item" onclick="executarLogout()" style="margin-left: auto; color: var(--zeus-red);">Sair</button>
+    </nav>
+
+    <div class="main-content" id="aba-conn" style="display:block;">
+        <div class="section">
+            <h2>Adicionar Novo Canal WhatsApp</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">O sistema criará automaticamente um ID exclusivo de 6 dígitos para esta conexão de forma autônoma.</p>
+            
+            <div style="display: flex; gap: 10px; max-width: 500px;">
+                <button onclick="requisitarQrCode()">Conectar via QR Code</button>
+                <button class="btn-blue" onclick="abrirModalPin()">Conectar via PIN</button>
+            </div>
+            
+            <div id="qr-area" style="margin-top: 15px; display: none;">
+                <p id="txt-qr">Aproxime o celular:</p>
+                <img id="img-qr" src="" style="border: 4px solid white; max-width: 200px; border-radius:8px;">
+            </div>
+
+            <div id="pin-area" style="margin-top: 15px; display: none; background: #202c33; padding: 20px; border-radius: 8px; border: 1px solid var(--zeus-blue); text-align: center;">
+                <p id="txt-pin" style="color: var(--text-main); font-size: 14px; margin-top:0;">Solicitando código PIN...</p>
+                <div id="display-pin" style="display: none; background: var(--bg-input); padding: 15px 30px; font-size: 38px; letter-spacing: 12px; font-weight: bold; border-radius: 8px; color: var(--zeus-blue); margin: 10px auto; width: fit-content;"></div>
+            </div>
+        </div>
+        <div class="section">
+            <h2>Meus Canais Configurados</h2>
+            <p id="lbl-limite-conn" style="color: var(--text-muted); font-size:13px;"></p>
+            <table>
+                <thead><tr><th>ID do Canal</th><th>Número</th><th>Status</th><th>Ações Administrativas</th></tr></thead>
+                <tbody id="lista-canais-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-content" id="aba-chat">
+        <div class="section" style="padding-bottom: 5px;">
+            <label style="color: var(--zeus-blue);">Selecione a Instância Ativa para Conversar:</label>
+            <select id="selInstanciaChatAoVivo" onchange="carregarConversasDoChatAoVivo()"></select>
+        </div>
+
+        <div class="wpp-web-layout">
+            <div class="wpp-sidebar">
+                <div class="wpp-sidebar-header">
+                    Conversas Ativas
+                    <button class="btn-blue btn-inline" onclick="abrirModalNovoChat()" style="margin:0;">+ Novo Chat</button>
+                </div>
+                <div style="padding:10px; background:#111b21; border-bottom:1px solid var(--border-color);">
+                    <button class="btn-gray btn-inline" onclick="carregarConversasDoChatAoVivo()" style="width:100%;">🔄 Recarregar Conversas / Contatos</button>
+                </div>
+                <div class="wpp-chat-list" id="wpp-sidebar-lista-conversas"></div>
+            </div>
+
+            <div class="wpp-container">
+                <div class="wpp-chat-header" id="wpp-header-nome-contato">Nenhum chat selecionado</div>
+                <div class="wpp-messages-body" id="wpp-corpo-mensagens-chat"></div>
+                
+                <div class="emoji-picker" id="box-emojis"></div>
+
+                <div class="wpp-footer-input">
+                    <button class="tool-btn" onclick="toggleEmojis()">😀</button>
+                    <input type="file" id="fileAnexoLive" style="display:none;" onchange="enviarAnexoLive()">
+                    <button class="tool-btn" onclick="document.getElementById('fileAnexoLive').click()">📎</button>
+
+                    <div style="flex-grow:1; display:flex; gap:10px;" id="box-texto-chat">
+                        <input type="text" id="iptTextoMensagemAvulsa" placeholder="Digite uma mensagem..." onkeypress="if(event.key==='Enter') enviarMensagemChatAoVivo()">
+                        <button class="tool-btn" onclick="enviarMensagemChatAoVivo()">➤</button>
+                    </div>
+
+                    <div class="recording-box" id="box-gravando-audio">
+                        <span class="blink">🔴 Gravando Áudio...</span>
+                        <button class="tool-btn" onclick="pararAudio(true)" style="color:var(--zeus-red);">✖</button>
+                        <button class="tool-btn" onclick="pararAudio(false)" style="color:var(--zeus-green);">➤</button>
+                    </div>
+
+                    <button class="tool-btn" id="btn-mic" onclick="iniciarAudio()">🎤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content" id="aba-disp">
+        <div class="section">
+            <h2>Criar Grade de Campanha</h2>
+            <label>Escolha o Canal Remetente Ativo:</label>
+            <select id="selRemetenteCampanha"><option value="">Nenhum canal selecionado</option></select>
+            <input type="text" id="nomeCampanha" placeholder="Nome identificador da Campanha">
+
+            <div class="flex-row">
+                <div class="col-left">
+                    <h3>Esteira Sequencial de Mensagens</h3>
+                    <div id="bloco-mensagens-esteira"></div>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="criarBlocoTexto()" class="btn-gray">+ Texto</button>
+                        <button onclick="criarBlocoMedia()" class="btn-gray">+ Arquivo</button>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <h3>Visualização Prévia</h3>
+                    <div class="celular">
+                        <div class="celular-chat" id="preview-chat-celular"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 25px;">Destinatários e Envio</h3>
+            <div class="flex-row">
+                <div style="flex:1; background: var(--bg-input); padding:15px; border-radius:6px; border:1px solid var(--border-color);">
+                    <label>Mapeamento Manual:</label>
+                    <input type="text" id="txtNumerosManuais" placeholder="Números separados por vírgula (ex: 41999999999, 11988888888)">
+                    <button onclick="dispararCampanha('manual')">Iniciar Envio Manual</button>
+                </div>
+                <div style="flex:1; background: var(--bg-input); padding:15px; border-radius:6px; border:1px solid var(--border-color);">
+                    <label>Mapeamento via Excel:</label>
+                    <button class="btn-gray" onclick="window.open('/api/planilha-modelo')" style="color: var(--zeus-blue); font-size:12px; padding:6px;">📥 Baixar Planilha Modelo (.XLSX)</button>
+                    <input type="file" id="fileExcelCampanha" accept=".xlsx, .xls" style="color: var(--text-muted); margin-top:10px; display:block;">
+                    <button onclick="dispararCampanha('planilha')" class="btn-blue" style="margin-top:14px;">Iniciar Processamento Excel</button>
+                </div>
+            </div>
+            <div id="box-envio-status" class="status-box"></div>
+        </div>
+
+        <div class="section">
+            <h2>Histórico de Campanhas Realizadas</h2>
+            <table>
+                <thead>
+                    <tr><th>Data</th><th>Nome da Campanha</th><th>Canal</th><th>Status</th><th>Progresso</th><th>Relatórios Finais</th></tr>
+                </thead>
+                <tbody id="lista-campanhas-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-content" id="aba-admin">
+        <div class="section">
+            <h2>Provisionar Novo Usuário SaaS</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div><label>Nome Completo do Usuário:</label><input type="text" id="admNomeCompleto" placeholder="Ex: Anthony Melk"></div>
+                <div><label>Login de Acesso (Exclusivo):</label><input type="text" id="admUser" placeholder="Ex: anthonymelk"></div>
+                <div><label>Senha Inicial:</label><input type="password" id="admPass" placeholder="Digite uma senha inicial"></div>
+                <div><label>Endereço de E-mail:</label><input type="email" id="admEmail" placeholder="cliente@provedor.com"></div>
+                <div><label>Telefone de Contato:</label><input type="text" id="admTelefone" placeholder="(41) 99999-9999"></div>
+                <div>
+                    <label>Tipo de Perfil de Usuário:</label>
+                    <select id="admTipoUsuario">
+                        <option value="Cliente Pro">Cliente Pro</option>
+                        <option value="Cliente Teste">Cliente Teste</option>
+                        <option value="Afiliado">Afiliado</option>
+                        <option value="Parceiro">Parceiro</option>
+                    </select>
+                </div>
+                <div><label>Código de Controle Interno Administrativo:</label><input type="text" id="admCodigoInterno" placeholder="Ex: CTRL-2026-PR"></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>Max Instâncias WA:</label><input type="number" id="admMaxConn" value="2"></div>
+                    <div><label>Envios Diários:</label><input type="number" id="admMaxEnvios" value="500"></div>
+                </div>
+            </div>
+            <button onclick="criarUsuarioSaaS()" style="max-width:230px; margin-top:15px;">Cadastrar e Salvar Usuário</button>
+        </div>
+        <div class="section">
+            <h2>Usuários Ativos na Plataforma</h2>
+            <table>
+                <thead>
+                    <tr><th>Nome / Código Interno</th><th>Login</th><th>Perfil / Contato</th><th>Limites Associados</th><th>Painel de Gestão Direta</th></tr>
+                </thead>
+                <tbody id="lista-usuarios-adm-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let token = localStorage.getItem('zeusToken');
+    let userRole = localStorage.getItem('zeusRole');
+    let userLogged = localStorage.getItem('zeusUser');
+    let gradeCampanha = [];
+    let bCount = 0;
+    let pollInterval = null;
+    let tempUserLogin = '';
+    let chatActiveJid = '';
+    let mediaRecorder;
+    let audioChunks = [];
+
+    if(token) {
+        document.getElementById('box-login-p1').classList.remove('active');
+        document.getElementById('view-main').style.display = 'block';
+        if(userRole === 'admin') document.getElementById('tab-btn-admin').style.display = 'block';
+        if(localStorage.getItem('zeusImpersonated') === 'true') document.getElementById('banner-emp').style.display = 'block';
+        inicializarModulos();
+    }
+
+    function alternarAba(aba) {
+        document.querySelectorAll('.main-content').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(`aba-${aba}`).style.display = 'block';
+        document.getElementById(`tab-btn-${aba}`).classList.add('active');
+        if(aba === 'chat') carregarConversasDoChatAoVivo();
+    }
+
+    function formatarNumeroBrasil(numero) {
+        if (!numero) return '';
+        let limpo = numero.toString().replace(/\D/g, ''); 
+        if (limpo.length === 10 || limpo.length === 11) return `55${limpo}`;
+        return limpo;
+    }
+
+    // ==========================================
+    // FLUXO DE LOGIN COMPLETO E 2FA
+    // ==========================================
+    async function loginPasso1() {
+        const usuario = document.getElementById('iptUser').value;
+        const senha = document.getElementById('iptPass').value;
+        const err = document.getElementById('login-err-p1');
+        err.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/login/passo1', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario, senha}) });
+            const data = await res.json();
+            
+            if (!res.ok) { err.style.display='block'; err.innerText = data.erro; return; }
+
+            tempUserLogin = data.user;
+            document.getElementById('box-login-p1').classList.remove('active');
+
+            if (data.requerTrocaSenha) {
+                document.getElementById('box-login-forcepass').classList.add('active');
+            } else if (data.requer2FA) {
+                document.getElementById('box-login-2fa').classList.add('active');
+                if (data.configurando2FA) {
+                    document.getElementById('setup-2fa-area').style.display = 'block';
+                    document.getElementById('img-qrcode-2fa').src = data.qrCode;
+                    document.getElementById('text-secret-2fa').innerText = data.secretCode;
+                } else {
+                    document.getElementById('setup-2fa-area').style.display = 'none';
+                }
+            } else {
+                guardarSessao(data);
+            }
+        } catch(e) { err.style.display='block'; err.innerText = 'Falha de rede.'; }
+    }
+
+    async function loginVerificar2fa() {
+        const token2fa = document.getElementById('iptToken2fa').value;
+        const err = document.getElementById('login-err-2fa');
+        err.style.display = 'none';
+        try {
+            const res = await fetch('/api/login/verificar-2fa', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario: tempUserLogin, token2fa}) });
+            const data = await res.json();
+            if (res.ok && data.sucesso) {
+                document.getElementById('box-login-2fa').classList.remove('active');
+                guardarSessao(data);
+            } else { err.style.display='block'; err.innerText = data.erro; }
+        } catch(e) { err.style.display='block'; err.innerText = 'Erro ao validar.'; }
+    }
+
+    async function alterarSenhaObrigatoria() {
+        const novaSenha = document.getElementById('iptNewPass').value;
+        if (!novaSenha) return alert('Insira a nova senha.');
+        try {
+            const res = await fetch('/api/usuarios/alterar-senha-inicial', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario: tempUserLogin, novaSenha}) });
+            const data = await res.json();
+            if (res.ok && data.sucesso) {
+                document.getElementById('box-login-forcepass').classList.remove('active');
+                guardarSessao(data);
+            }
+        } catch(e) { alert('Falha ao atualizar.'); }
+    }
+
+    function guardarSessao(data) {
+        localStorage.setItem('zeusToken', data.token);
+        localStorage.setItem('zeusRole', data.role);
+        localStorage.setItem('zeusUser', data.user);
+        location.reload();
+    }
+
+    function executarLogout() { localStorage.clear(); location.reload(); }
+    function getHeaders() { return { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('zeusToken') }; }
+
+    function inicializarModulos() {
+        carregarCanais();
+        carregarCampanhas();
+        carregarEmojis();
+        if(userRole === 'admin') carregarUsuariosAdm();
+        if(!pollInterval) pollInterval = setInterval(carregarCampanhas, 3000);
+    }
+
+    // ==========================================
+    // CANAIS E SINCRONIZAÇÃO HÍBRIDA (QR/PIN)
+    // ==========================================
+    async function carregarCanais() {
+        const res = await fetch('/api/instancias', { headers: getHeaders() });
+        const data = await res.json();
+        const tbody = document.getElementById('lista-canais-corpo');
+        const selectChat = document.getElementById('selInstanciaChatAoVivo');
+        const selectDisp = document.getElementById('selRemetenteCampanha');
+        
+        tbody.innerHTML = ''; selectChat.innerHTML = '<option value="">Escolha a Instância...</option>'; selectDisp.innerHTML = '<option value="">Escolha a Instância...</option>';
+        if(data.limites) document.getElementById('lbl-limite-conn').innerText = `Limites: ${data.limites.conexoesMax} conexões e ${data.limites.limiteDiario} envios diários.`;
+
+        data.instancias.forEach(c => {
+            let badge = c.status === 'open' ? `<span class="badge badge-open">ATIVO</span>` : `<span class="badge badge-closed">DESCONECTADO</span>`;
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td><b>${c.idExibicao}</b></td><td>${c.numero}</td><td>${badge}</td>
+                <td>
+                    <button class="btn-blue btn-inline" onclick="reiniciarMotor('${c.nome}')">Reiniciar Conexão</button>
+                    <button class="btn-gray btn-inline" onclick="alterarStatusCanal('${c.nome}', 'logout')">Suspender Uso</button>
+                    <button class="btn-red btn-inline" onclick="alterarStatusCanal('${c.nome}', 'deletar')">Excluir</button>
+                </td>`;
+            tbody.appendChild(tr);
+            if(c.status === 'open') {
+                selectChat.add(new Option(`${c.idExibicao} (${c.numero})`, c.nome));
+                selectDisp.add(new Option(`${c.idExibicao} (${c.numero})`, c.nome));
+            }
+        });
+    }
+
+    async function requisitarQrCode() {
+        document.getElementById('pin-area').style.display = 'none';
+        document.getElementById('qr-area').style.display = 'block';
+        document.getElementById('txt-qr').innerHTML = 'Gerando ID criptografado exclusivo...';
+        const res = await fetch('/api/criar-instancia', { method:'POST', headers:getHeaders() });
+        const data = await res.json();
+        if(data.sucesso) {
+            document.getElementById('txt-qr').innerHTML = `Leia o QR Code abaixo com o WhatsApp do cliente.<br><br><span style="color:var(--zeus-blue); font-size:18px;">ID DO CANAL: <b>${data.idGerado}</b></span>`;
+            document.getElementById('img-qr').src = data.qrcode;
+            setTimeout(carregarCanais, 5000);
+        } else { alert(data.erro); document.getElementById('qr-area').style.display='none'; }
+    }
+
+    function abrirModalPin() {
+        document.getElementById('modal-novo-pin').style.display = 'flex';
+        document.getElementById('iptModalNumeroPin').value = '';
+    }
+
+    function fecharModalPin() {
+        document.getElementById('modal-novo-pin').style.display = 'none';
+    }
+
+    async function confirmarPin() {
+        const num = document.getElementById('iptModalNumeroPin').value;
+        if(!num) return alert('Digite o número do WhatsApp.');
+        fecharModalPin();
+        
+        document.getElementById('qr-area').style.display = 'none';
+        document.getElementById('pin-area').style.display = 'block';
+        document.getElementById('txt-pin').innerHTML = 'Gerando ID exclusivo e solicitando PIN de emparelhamento remoto...';
+        document.getElementById('display-pin').style.display = 'none';
+        
+        const res = await fetch('/api/criar-instancia-pin', { method:'POST', headers:getHeaders(), body: JSON.stringify({ numeroTelefone: num }) });
+        const data = await res.json();
+        
+        if(data.sucesso) {
+            document.getElementById('txt-pin').innerHTML = `No WhatsApp, vá em <b>Aparelhos Conectados</b> > <b>Conectar com número de telefone</b>.<br>Digite o código abaixo.<br><br><span style="color:var(--zeus-blue); font-size:16px;">ID DO CANAL: <b>${data.idGerado}</b></span>`;
+            document.getElementById('display-pin').innerText = data.pairingCode;
+            document.getElementById('display-pin').style.display = 'inline-block';
+            setTimeout(carregarCanais, 8000);
+        } else { 
+            alert(data.erro); 
+            document.getElementById('pin-area').style.display='none'; 
+        }
+    }
+
+    async function alterarStatusCanal(nome, acao) {
+        const res = await fetch(`/api/instancia/${acao}`, { method:'POST', headers:getHeaders(), body:JSON.stringify({nomeInstancia: nome}) });
+        if(res.ok) carregarCanais();
+    }
+
+    async function reiniciarMotor(nome) {
+        alert('Enviando comando de reinício para a Evolution API. A conexão deve estabilizar e retomar a sincronia de mensagens em 10 segundos.');
+        await fetch('/api/instancia/reiniciar', { method:'POST', headers:getHeaders(), body:JSON.stringify({nomeInstancia: nome}) });
+        setTimeout(carregarCanais, 5000);
+    }
+
+    // ==========================================
+    // CHAT AO VIVO - AGENDA E CONVERSAS DIRETO DA API
+    // ==========================================
+    function abrirModalNovoChat() {
+        document.getElementById('modal-novo-chat').style.display = 'flex';
+        document.getElementById('iptModalNumero').value = '';
+    }
+
+    function fecharModalNovoChat() {
+        document.getElementById('modal-novo-chat').style.display = 'none';
+    }
+
+    function confirmarNovoChat() {
+        let numeroRaw = document.getElementById('iptModalNumero').value;
+        if(!numeroRaw) return;
+        
+        // Formata de forma segura e remove espaços ou formatações erradas
+        let numeroLimpo = numeroRaw.replace(/\D/g, ''); 
+        if (numeroLimpo.length < 10) return alert('Número inválido.');
+        let numeroFormatado = formatarNumeroBrasil(numeroLimpo);
+        
+        let jid = `${numeroFormatado}@s.whatsapp.net`;
+        fecharModalNovoChat();
+        abrirConversaChatAoVivo(jid, numeroFormatado);
+    }
+
+    // Função unificada para carregar tudo (Contatos e Conversas) limpo e leve
+    async function carregarConversasDoChatAoVivo() {
+        const instancia = document.getElementById('selInstanciaChatAoVivo').value;
+        const lista = document.getElementById('wpp-sidebar-lista-conversas');
+        
+        if (!instancia) {
+            lista.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--text-muted); margin-top:20px;">Selecione uma conexão acima para carregar.</p>';
+            return;
+        }
+        
+        lista.innerHTML = '<p style="color:var(--text-muted); text-align:center; margin-top:20px;">Atualizando Lista da API...</p>';
+
+        try {
+            // Busca Conversas Ativas
+            const resChats = await fetch(`/api/chat/conversas?instancia=${instancia}`, { headers: getHeaders() });
+            const dataChats = await resChats.json();
+            
+            // Busca Contatos da Agenda
+            const resContacts = await fetch(`/api/chat/contatos?instancia=${instancia}`, { headers: getHeaders() });
+            const dataContacts = await resContacts.json();
+
+            lista.innerHTML = '';
+            let itensRenderizados = 0;
+
+            // Renderiza Conversas Primeiro
+            if (dataChats.sucesso && dataChats.conversas.length > 0) {
+                dataChats.conversas.forEach(chat => {
+                    const jid = chat.id;
+                    if(!jid) return;
+                    
+                    const nomeContato = chat.name || jid.split('@')[0];
+                    const ultimaMsg = chat.message && chat.message.conversation ? chat.message.conversation : 'Nova Interação';
+                    
+                    const div = document.createElement('div');
+                    div.className = 'wpp-chat-item'; div.id = `chat-item-${jid.replace('@', '-')}`;
+                    div.onclick = () => abrirConversaChatAoVivo(jid, nomeContato);
+                    div.innerHTML = `<div class="wpp-chat-name">${nomeContato}</div><div class="wpp-chat-lastmsg">${ultimaMsg}</div>`;
+                    lista.appendChild(div);
+                    itensRenderizados++;
+                });
+            }
+
+            // Renderiza Contatos da Agenda Abaixo
+            if (dataContacts.sucesso && dataContacts.contatos.length > 0) {
+                dataContacts.contatos.forEach(contato => {
+                    const jid = contato.id || contato.remoteJid;
+                    if(!jid || !jid.includes('@s.whatsapp.net')) return; // Apenas contatos pessoais
+                    
+                    // Evita duplicar se já foi renderizado na lista de chats
+                    if (document.getElementById(`chat-item-${jid.replace('@', '-')}`)) return;
+
+                    const nomeContato = contato.name || contato.pushName || contato.verifiedName || jid.split('@')[0];
+                    const div = document.createElement('div');
+                    div.className = 'wpp-chat-item'; div.id = `chat-item-${jid.replace('@', '-')}`;
+                    div.onclick = () => abrirConversaChatAoVivo(jid, nomeContato);
+                    div.innerHTML = `<div class="wpp-chat-name">${nomeContato}</div><div class="wpp-chat-lastmsg" style="color:var(--zeus-green);">📱 Contato Salvo</div>`;
+                    lista.appendChild(div);
+                    itensRenderizados++;
+                });
+            }
+
+            if(itensRenderizados === 0) {
+                lista.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--text-muted); margin-top:20px;">Nenhuma conversa ou contato retornado da API.</p>';
+            }
+
+        } catch (e) {
+            lista.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--zeus-red); margin-top:20px;">Falha de comunicação com o servidor.</p>';
+        }
+    }
+
+    async function abrirConversaChatAoVivo(jid, nome) {
+        chatActiveJid = jid;
+        document.querySelectorAll('.wpp-chat-item').forEach(i => i.classList.remove('active'));
+        const activeItem = document.getElementById(`chat-item-${jid.replace('@', '-')}`);
+        if(activeItem) activeItem.classList.add('active');
+
+        document.getElementById('wpp-header-nome-contato').innerText = nome;
+        const corpoMsgs = document.getElementById('wpp-corpo-mensagens-chat');
+        corpoMsgs.innerHTML = '<p style="color:var(--text-muted); text-align:center; margin-top:150px;">Buscando Histórico...</p>';
+
+        const instancia = document.getElementById('selInstanciaChatAoVivo').value;
+        const res = await fetch(`/api/chat/mensagens?instancia=${instancia}&remoteJid=${jid}`, { headers: getHeaders() });
+        const data = await res.json();
+
+        corpoMsgs.innerHTML = '';
+        if(data.sucesso && data.mensagens.length > 0) {
+            data.mensagens.reverse().forEach(m => {
+                let balao = document.createElement('div');
+                balao.className = `wpp-bubble ${m.key.fromMe ? 'out' : 'in'}`;
+                
+                if (m.zeusApagada) {
+                    balao.innerHTML = `<span class="wpp-deleted">🚫 [APAGADA PARA TODOS]</span><br><strike>${m.message?.conversation || 'Mídia Removida'}</strike>`;
+                } else {
+                    let textoMsg = m.message?.conversation || m.message?.extendedTextMessage?.text;
+                    
+                    if(textoMsg) {
+                        balao.innerText = textoMsg;
+                    } else if (m.message?.imageMessage) {
+                        // Renderização visual melhorada para imagem
+                        let cap = m.message.imageMessage.caption || '';
+                        balao.innerHTML = `<div style="background:rgba(0,0,0,0.2); padding:5px; border-radius:4px; font-size:11px; margin-bottom:5px;">📷 Imagem Recebida/Enviada</div>${cap}`;
+                    } else if (m.message?.documentMessage) {
+                        balao.innerHTML = `📄 Documento: <b>${m.message.documentMessage.fileName || 'Arquivo'}</b>`;
+                    } else if (m.message?.audioMessage) {
+                        balao.innerHTML = `🎤 Áudio de Voz (Reproduzir no App)`;
+                    } else {
+                        balao.innerText = '📎 Interação Especial/Figurinha';
+                    }
+                    
+                    if (m.key.fromMe && m.key.id) {
+                        balao.innerHTML += `<div class="msg-actions"><button class="msg-btn" title="Apagar para Todos" onclick="apagarMensagem('${m.key.id}')">🗑️</button></div>`;
+                    }
+                }
+                corpoMsgs.appendChild(balao);
+            });
+            corpoMsgs.scrollTop = corpoMsgs.scrollHeight;
+        } else {
+            corpoMsgs.innerHTML = '<p style="color:var(--text-muted); text-align:center; margin-top:150px;">Aguardando nova mensagem para iniciar histórico visual.</p>';
+        }
+    }
+
+    // ==========================================
+    // FERRAMENTAS DO CHAT (MENSAGEM, MÍDIA E ÁUDIO)
+    // ==========================================
+    async function enviarMensagemChatAoVivo() {
+        const texto = document.getElementById('iptTextoMensagemAvulsa').value;
+        const instancia = document.getElementById('selInstanciaChatAoVivo').value;
+        
+        if (!texto || !chatActiveJid) return;
+        document.getElementById('iptTextoMensagemAvulsa').value = '';
+
+        const corpoMsgs = document.getElementById('wpp-corpo-mensagens-chat');
+        let tempId = 'msg-temp-' + Date.now();
+        let b = document.createElement('div'); 
+        b.className = 'wpp-bubble out'; b.id = tempId;
+        b.innerHTML = texto + ' <span style="font-size:10px; opacity:0.6;">⏳</span>';
+        corpoMsgs.appendChild(b); corpoMsgs.scrollTop = corpoMsgs.scrollHeight;
+
+        try {
+            const result = await fetch('/api/chat/enviar-mensagem', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ instancia, remoteJid: chatActiveJid, texto }) });
+            const resultJson = await result.json();
+            
+            if (resultJson.sucesso) {
+                document.getElementById(tempId).innerHTML = texto + ' <span style="font-size:10px; opacity:0.6;">✓</span>';
+            } else {
+                document.getElementById(tempId).innerHTML = texto + ` <span style="color:red; font-size:10px;">❌ Falha (${resultJson.erro})</span>`;
+            }
+        } catch (e) {
+            document.getElementById(tempId).innerHTML = texto + ' <span style="color:red; font-size:10px;">❌ Erro de Rede</span>';
+        }
+    }
+
+    async function enviarAnexoLive() {
+        const file = document.getElementById('fileAnexoLive').files[0];
+        const instancia = document.getElementById('selInstanciaChatAoVivo').value;
+        if(!file || !instancia || !chatActiveJid) return;
+
+        const formData = new FormData();
+        formData.append('arquivo', file);
+        formData.append('instancia', instancia);
+        formData.append('remoteJid', chatActiveJid);
+        formData.append('legenda', prompt("Adicionar legenda? (Deixe em branco para nenhuma)"));
+
+        await fetch('/api/chat/enviar-media', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData });
+        setTimeout(() => abrirConversaChatAoVivo(chatActiveJid, document.getElementById('wpp-header-nome-contato').innerText), 2000);
+    }
+
+    async function apagarMensagem(messageId) {
+        const instancia = document.getElementById('selInstanciaChatAoVivo').value;
+        if(!confirm("Deseja apagar essa mensagem PARA TODOS? O registro continuará no Zeus-Lite.")) return;
+        await fetch('/api/chat/apagar-mensagem', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ instancia, remoteJid: chatActiveJid, messageId }) });
+        setTimeout(() => abrirConversaChatAoVivo(chatActiveJid, document.getElementById('wpp-header-nome-contato').innerText), 1000);
+    }
+
+    async function iniciarAudio() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start(); audioChunks = [];
+            mediaRecorder.addEventListener("dataavailable", e => { audioChunks.push(e.data); });
+            document.getElementById('box-texto-chat').style.display = 'none';
+            document.getElementById('btn-mic').style.display = 'none';
+            document.getElementById('box-gravando-audio').style.display = 'flex';
+        } catch (err) { alert('Habilite a permissão do microfone no navegador.'); }
+    }
+
+    async function pararAudio(cancelar = false) {
+        document.getElementById('box-texto-chat').style.display = 'flex';
+        document.getElementById('btn-mic').style.display = 'block';
+        document.getElementById('box-gravando-audio').style.display = 'none';
+
+        if(cancelar) { mediaRecorder.stop(); return; }
+
+        mediaRecorder.addEventListener("stop", async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio.webm');
+            formData.append('instancia', document.getElementById('selInstanciaChatAoVivo').value);
+            formData.append('remoteJid', chatActiveJid);
+
+            await fetch('/api/chat/enviar-audio', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData });
+            setTimeout(() => abrirConversaChatAoVivo(chatActiveJid, document.getElementById('wpp-header-nome-contato').innerText), 2000);
+        });
+        mediaRecorder.stop();
+    }
+
+    function carregarEmojis() {
+        const emojis = ['😀','😂','🥰','😍','😎','😢','😡','👍','🙏','👏','🔥','❤️'];
+        const box = document.getElementById('box-emojis');
+        emojis.forEach(e => {
+            let span = document.createElement('span'); span.className = 'emoji-item'; span.innerText = e;
+            span.onclick = () => { document.getElementById('iptTextoMensagemAvulsa').value += e; toggleEmojis(); }
+            box.appendChild(span);
+        });
+    }
+    function toggleEmojis() { const b = document.getElementById('box-emojis'); b.style.display = b.style.display === 'grid' ? 'none' : 'grid'; }
+
+    // ==========================================
+    // DISPAROS EM MASSA E CONSTRUTOR
+    // ==========================================
+    function criarBlocoTexto() {
+        const id = bCount++;
+        const div = document.createElement('div'); div.className = 'msg-block'; div.id = `blc-${id}`;
+        div.innerHTML = `<button class="remove-btn" onclick="removerBloco(${id})">X</button><label>Texto:</label><textarea placeholder="Sua mensagem..." oninput="salvarBloco(${id}, 'texto', this.value)"></textarea>`;
+        document.getElementById('bloco-mensagens-esteira').appendChild(div);
+        gradeCampanha.push({ id, tipo:'texto', texto:'' });
+    }
+
+    function criarBlocoMedia() {
+        const id = bCount++;
+        const div = document.createElement('div'); div.className = 'msg-block'; div.id = `blc-${id}`;
+        div.innerHTML = `<button class="remove-btn" onclick="removerBloco(${id})">X</button><label>Mídia:</label><input type="file" accept="image/*, .pdf" onchange="conversaoBase64(${id}, this)"><label style="margin-top:5px;">Legenda:</label><textarea oninput="salvarBloco(${id}, 'legenda', this.value)"></textarea>`;
+        document.getElementById('bloco-mensagens-esteira').appendChild(div);
+        gradeCampanha.push({ id, tipo:'media', base64:null, fileName:'', mimeType:'', legenda:'' });
+    }
+
+    function removerBloco(id) { document.getElementById(`blc-${id}`).remove(); gradeCampanha = gradeCampanha.filter(g => g.id !== id); atualizarPreviewCelular(); }
+    function salvarBloco(id, campo, valor) { const item = gradeCampanha.find(g => g.id === id); if(item) item[campo] = valor; atualizarPreviewCelular(); }
+    
+    function conversaoBase64(id, input) {
+        if(!input.files[0]) return;
+        const file = input.files[0]; const reader = new FileReader();
+        reader.onload = function(e) {
+            const item = gradeCampanha.find(g => g.id === id);
+            if(item) { item.base64 = e.target.result; item.fileName = file.name; item.mimeType = file.type; atualizarPreviewCelular(); }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function atualizarPreviewCelular() {
+        const chat = document.getElementById('preview-chat-celular'); chat.innerHTML = '';
+        gradeCampanha.forEach(g => {
+            let b = document.createElement('div'); b.className = 'balao';
+            if(g.tipo === 'texto') b.innerText = g.texto || '...';
+            else b.innerHTML = `<div class="balao-media">📂 ${g.fileName || 'Anexo'}</div><div style="margin-top:4px;">${g.legenda || ''}</div>`;
+            chat.appendChild(b);
+        });
+    }
+
+    async function dispararCampanha(modo) {
+        const canal = document.getElementById('selRemetenteCampanha').value;
+        const nomeCamp = document.getElementById('nomeCampanha').value;
+        const boxStatus = document.getElementById('box-envio-status');
+
+        if(!canal || !nomeCamp) return alert('Selecione o canal ativo e nomeie a campanha.');
+        boxStatus.style.display = 'block'; boxStatus.style.background = '#21262d'; boxStatus.innerText = 'Processando...';
+
+        let url, bodyData;
+        if(modo === 'manual') {
+            let stringNumerosRaw = document.getElementById('txtNumerosManuais').value;
+            let numerosFiltradosEParseados = stringNumerosRaw.replace(/[\n;\s]+/g, ',').replace(/,,+/g, ',');
+            
+            url = '/api/campanhas/criar-manual';
+            bodyData = JSON.stringify({ nome: nomeCamp, remetente: canal, numeros: numerosFiltradosEParseados, sequencia: gradeCampanha });
+        } else {
+            const fileInput = document.getElementById('fileExcelCampanha');
+            if(!fileInput.files[0]) return alert('Selecione o arquivo Excel.');
+            url = '/api/campanhas/criar-planilha';
+            bodyData = new FormData();
+            bodyData.append('nome', nomeCamp);
+            bodyData.append('remetente', canal);
+            bodyData.append('sequencia', JSON.stringify(gradeCampanha));
+            bodyData.append('planilha', fileInput.files[0]);
+        }
+
+        const headers = modo === 'manual' ? getHeaders() : { 'Authorization': 'Bearer ' + localStorage.getItem('zeusToken') };
+        const res = await fetch(url, { method:'POST', headers, body: bodyData });
+        const data = await res.json();
+
+        if(data.sucesso) {
+            boxStatus.style.background = 'rgba(35, 165, 90, 0.2)'; boxStatus.innerText = 'Campanha lançada com Sucesso!';
+            carregarCampanhas();
+        } else { boxStatus.style.background = 'rgba(248, 81, 73, 0.2)'; boxStatus.innerText = data.erro; }
+    }
+
+    async function carregarCampanhas() {
+        if(!localStorage.getItem('zeusToken')) return;
+        const res = await fetch('/api/campanhas', { headers: getHeaders() });
+        const data = await res.json();
+        const tbody = document.getElementById('lista-campanhas-corpo');
+        tbody.innerHTML = '';
+
+        data.campanhas.forEach(c => {
+            let btnRelatorios = c.status === 'Concluída' ? 
+                `<button class="btn-blue btn-inline" onclick="window.open('/api/campanhas/${c.id}/excel?authorization=Bearer '+localStorage.getItem('zeusToken'))">Excel</button>
+                 <button class="btn-gray btn-inline" style="color:var(--zeus-green);" onclick="window.open('/api/campanhas/${c.id}/pdf?authorization=Bearer '+localStorage.getItem('zeusToken'))">PDF</button>` : 
+                `<span style="color:var(--text-muted); font-size:12px;">Processando...</span>`;
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${c.data}</td>
+                <td><b>${c.nome.toUpperCase()}</b></td>
+                <td>${c.remetente.split('-')[1].toUpperCase()}</td>
+                <td><span style="color:${c.status === 'Concluída' ? 'var(--zeus-green)' : 'var(--zeus-blue)'}">${c.status}</span></td>
+                <td>
+                    <div style="font-size:11px; margin-bottom:2px;">${c.processados} de ${c.totalContatos} (${c.progresso}%)</div>
+                    <div class="progress-container"><div class="progress-bar" style="width:${c.progresso}%"></div></div>
+                </td>
+                <td>${btnRelatorios}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ==========================================
+    // PAINEL ADMINISTRATIVO E GESTÃO SAAS
+    // ==========================================
+    async function carregarUsuariosAdm() {
+        const res = await fetch('/api/admin/usuarios', { headers: getHeaders() });
+        const data = await res.json();
+        const tbody = document.getElementById('lista-usuarios-adm-corpo');
+        tbody.innerHTML = '';
+
+        data.usuarios.forEach(u => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${u.nome}</b><br><span style="color:var(--text-muted); font-size:11px;">Ref: ${u.codigoInterno || 'N/A'}</span></td>
+                <td><code>${u.usuario}</code></td>
+                <td><span class="badge badge-open">${u.tipoUsuario}</span><br><span style="color:var(--text-muted); font-size:11px;">${u.email}</span></td>
+                <td>Channels: ${u.conexoesMax}<br>Envios: ${u.limiteDiario}/dia</td>
+                <td>
+                    <button class="btn-blue btn-inline" style="background:var(--zeus-purple); color:black;" onclick="emularSessao('${u.usuario}')">Emular Sessão</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function criarUsuarioSaaS() {
+        const payload = {
+            nome: document.getElementById('admNomeCompleto').value,
+            usuario: document.getElementById('admUser').value,
+            senhaInicial: document.getElementById('admPass').value,
+            email: document.getElementById('admEmail').value,
+            telefone: document.getElementById('admTelefone').value,
+            tipoUsuario: document.getElementById('admTipoUsuario').value,
+            codigoInterno: document.getElementById('admCodigoInterno').value,
+            conexoesMax: document.getElementById('admMaxConn').value,
+            limiteDiario: document.getElementById('admMaxEnvios').value
+        };
+
+        if(!payload.usuario || !payload.senhaInicial) return alert('Campos de Login e Senha são obrigatórios.');
+
+        const res = await fetch('/api/admin/usuarios/criar', { method:'POST', headers:getHeaders(), body:JSON.stringify(payload) });
+        if(res.ok) { 
+            alert('Novo usuário provisionado com sucesso!'); 
+            carregarUsuariosAdm();
+            document.getElementById('admNomeCompleto').value = '';
+            document.getElementById('admUser').value = '';
+            document.getElementById('admPass').value = '';
+            document.getElementById('admEmail').value = '';
+            document.getElementById('admTelefone').value = '';
+            document.getElementById('admCodigoInterno').value = '';
+        }
+    }
+
+    async function emularSessao(alvo) {
+        const res = await fetch('/api/admin/impersonate', { method:'POST', headers:getHeaders(), body:JSON.stringify({usuarioTarget: alvo}) });
+        const data = await res.json();
+        if(data.sucesso) {
+            localStorage.setItem('zeusToken', data.token);
+            localStorage.setItem('zeusRole', data.role);
+            localStorage.setItem('zeusUser', data.user);
+            localStorage.setItem('zeusImpersonated', 'true');
+            location.reload();
+        }
+    }
+
+    function cancelarEmulacao() { localStorage.clear(); location.reload(); }
+</script>
+</body>
+</html>
