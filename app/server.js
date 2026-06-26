@@ -287,7 +287,6 @@ app.get('/api/chat/contatos', verificarToken, async (req, res) => {
         const response = await axios.get(`${API_URL}/chat/findContacts/${instancia}`, { headers: evolutionHeaders });
         let dados = [];
         
-        // Varredura em profundidade para achar onde a API injetou a lista
         if (Array.isArray(response.data)) {
             dados = response.data;
         } else if (response.data && typeof response.data === 'object') {
@@ -348,7 +347,6 @@ app.get('/api/chat/mensagens', verificarToken, async (req, res) => {
     }
 });
 
-// Envio Totalmente Seguro (Nunca crasheia e envia o 'composing' nativamente)
 app.post('/api/chat/enviar-mensagem', verificarToken, async (req, res) => {
     const { instancia, remoteJid, texto } = req.body;
     const numLimpo = remoteJid.split('@')[0];
@@ -359,8 +357,6 @@ app.post('/api/chat/enviar-mensagem', verificarToken, async (req, res) => {
             options: { presence: "composing" },
             textMessage: { text: texto } 
         }, { headers: evolutionHeaders });
-        
-        // Retornamos um objeto simples para NÃO serializar buffers brutos de response.data
         res.json({ sucesso: true });
     } catch (error) { 
         res.json({ sucesso: false, erro: error.response?.data?.message || "Falha na API." }); 
