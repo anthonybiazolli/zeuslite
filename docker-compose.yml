@@ -37,7 +37,7 @@ services:
       - AUTHENTICATION_TYPE=apikey
       - AUTHENTICATION_API_KEY=SuaChaveSecretaMaster123
       
-      # Banco de Dados (Agora configurado para o MongoDB)
+      # Banco de Dados
       - DATABASE_ENABLED=true
       - DATABASE_CONNECTION_URI=mongodb://root:senha_segura_123@mongodb:27017/?authSource=admin
       - DATABASE_CONNECTION_DB_PREFIX_NAME=evolution
@@ -56,6 +56,29 @@ services:
     depends_on:
       - evolution-api
     restart: always
+    environment:
+      # Limita a RAM que o Node.js pode usar (512MB) antes de limpar a memória. Evita o erro 137 (OOMKilled)
+      - NODE_OPTIONS=--max-old-space-size=512
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+
+  # Gerenciador de SSL e Proxy Reverso (Nginx Proxy Manager)
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: always
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - saas-app
 
 volumes:
   mongodb_data:
