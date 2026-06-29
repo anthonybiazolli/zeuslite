@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
@@ -16,6 +17,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
+app.set('trust proxy', true);
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -31,6 +33,7 @@ const evolutionHeaders = {
 const USERS_FILE = path.join(__dirname, 'usuarios.json');
 const CAMPAIGNS_FILE = path.join(__dirname, 'campanhas.json');
 const AUDIT_FILE = path.join(__dirname, 'mensagens_apagadas.json');
+const HEALTH_FILE = path.join(__dirname, 'saude_numeros.json');
 
 function carregarDados(arquivo, padrao = []) {
     if (!fs.existsSync(arquivo)) fs.writeFileSync(arquivo, JSON.stringify(padrao, null, 2));
@@ -49,11 +52,44 @@ let usuarios = carregarDados(USERS_FILE, [
         conexoesMax: 99, 
         limiteDiario: 999999,
         twoFactorSecret: null,
-        twoFactorConfigured: false
+        twoFactorConfigured: false,
+        status: 'ativo',
+        termosAceitos: true
     }
 ]);
 let campanhas = carregarDados(CAMPAIGNS_FILE, []);
 let msgsApagadas = carregarDados(AUDIT_FILE, []);
+let saudeNumeros = carregarDados(HEALTH_FILE, {});
+
+function registrarSaude(instancia, metrica, valor = 1) {
+    if (!saudeNumeros[instancia]) {
+        saudeNumeros[instancia] = {
+            score: 100, // 100-80: Verde, 79-50: Amarelo, <50: Vermelho
+            dataPrimeiraConexao: new Date().toISOString(),
+            qtdCampanhas: 0,
+            novasConversasIniciadas: 0,
+            mensagensEnviadas: 0,
+            mensagensEntregues: 0,
+            mensagensLidas: 0,
+            conversasRespondidas: 0,
+            mensagensNaoChegaram: 0
+        };
+    }
+    
+    saudeNumeros[instancia][metrica] += valor;
+    
+    // Atualiza o Score Baseado nas interações
+    if(metrica === 'mensagensEnviadas') saudeNumeros[instancia].score -= 0.1;
+    if(metrica === 'mensagensEntregues') saudeNumeros[instancia].score += 0.05;
+    if(metrica === 'mensagensLidas') saudeNumeros[instancia].score += 0.1;
+    if(metrica === 'conversasRespondidas') saudeNumeros[instancia].score += 1.0;
+    if(metrica === 'mensagensNaoChegaram') saudeNumeros[instancia].score -= 0.5;
+
+    if(saudeNumeros[instancia].score > 100) saudeNumeros[instancia].score = 100;
+    if(saudeNumeros[instancia].score < 0) saudeNumeros[instancia].score = 0;
+
+    salvarDados(HEALTH_FILE, saudeNumeros);
+}
 
 function formatarNumeroBrasil(numero) {
     if (!numero) return '';
@@ -92,7 +128,16 @@ app.post('/api/login/passo1', async (req, res) => {
     const userFound = usuarios.find(u => u.usuario === usuario && u.senha === senha);
     
     if (!userFound) return res.status(401).json({ sucesso: false, erro: 'Usuário ou senha incorretos!' });
-    if (userFound.role === 'user' && userFound.deveAlterarSenha) return res.json({ sucesso: true, requerTrocaSenha: true, user: userFound.usuario });
+    
+    if (userFound.status === 'suspenso') {
+        return res.status(403).json({ sucesso: false, erro: 'Sua conta foi suspensa pela administração.' });
+    }
+
+    if (!userFound.termosAceitos) {
+        return res.json({ sucesso: true, requerTermos: true, user: userFound.usuario });
+    }
+
+    if (userFound.deveAlterarSenha) return res.json({ sucesso: true, requerTrocaSenha: true, user: userFound.usuario });
 
     if (userFound.role === 'admin') {
         if (!userFound.twoFactorConfigured) {
@@ -108,6 +153,28 @@ app.post('/api/login/passo1', async (req, res) => {
     const token = jwt.sign({ user: userFound.usuario, role: userFound.role }, JWT_SECRET, { expiresIn: '12h' });
     res.json({ sucesso: true, token, role: userFound.role, user: userFound.usuario });
 });
+
+app.post('/api/usuarios/aceitar-termos', (req, res) => {
+    const { usuario, regiao } = req.body;
+    const userFound = usuarios.find(u => u.usuario === usuario);
+    if (!userFound) return res.status(404).json({ erro: 'Usuário não encontrado.' });
+
+    userFound.termosAceitos = true;
+    userFound.termosDetalhes = {
+        ip: req.ip || req.connection.remoteAddress,
+        regiao: regiao,
+        dataHora: new Date().toISOString()
+    };
+    
+    salvarDados(USERS_FILE, usuarios);
+
+    if (userFound.deveAlterarSenha) return res.json({ sucesso: true, requerTrocaSenha: true, user: userFound.usuario });
+    if (userFound.role === 'admin' && !userFound.twoFactorConfigured) return res.json({ sucesso: true, requer2FA: true, user: userFound.usuario });
+
+    const token = jwt.sign({ user: userFound.usuario, role: userFound.role }, JWT_SECRET, { expiresIn: '12h' });
+    res.json({ sucesso: true, token, role: userFound.role, user: userFound.usuario });
+});
+
 
 app.post('/api/login/verificar-2fa', (req, res) => {
     const { usuario, token2fa } = req.body;
@@ -136,6 +203,8 @@ app.post('/api/usuarios/alterar-senha-inicial', (req, res) => {
     userFound.deveAlterarSenha = false;
     usuarios = usuarios.map(u => u.usuario === usuario ? userFound : u);
     salvarDados(USERS_FILE, usuarios);
+
+    if (userFound.role === 'admin' && !userFound.twoFactorConfigured) return res.json({ sucesso: true, requer2FA: true, user: userFound.usuario });
 
     const token = jwt.sign({ user: userFound.usuario, role: userFound.role }, JWT_SECRET, { expiresIn: '12h' });
     res.json({ sucesso: true, token, role: userFound.role, user: userFound.usuario });
@@ -171,14 +240,53 @@ app.post('/api/admin/usuarios/criar', verificarToken, (req, res) => {
     usuarios.push({ 
         nome, usuario, senha: senhaInicial, email, telefone, tipoUsuario, codigoInterno,
         role: 'user', conexoesMax: parseInt(conexoesMax || 1), limiteDiario: parseInt(limiteDiario || 100),
-        deveAlterarSenha: true 
+        deveAlterarSenha: true, status: 'ativo', termosAceitos: false 
     });
     salvarDados(USERS_FILE, usuarios);
     res.json({ sucesso: true });
 });
 
+app.post('/api/admin/usuarios/:id/status', verificarToken, (req, res) => {
+    if (req.userContext.role !== 'admin') return res.status(403).json({ erro: 'Negado.' });
+    const u = usuarios.find(x => x.usuario === req.params.id);
+    if(u) { u.status = req.body.status; salvarDados(USERS_FILE, usuarios); }
+    res.json({ sucesso: true });
+});
+
+app.post('/api/admin/usuarios/:id/deletar', verificarToken, (req, res) => {
+    if (req.userContext.role !== 'admin') return res.status(403).json({ erro: 'Negado.' });
+    usuarios = usuarios.filter(x => x.usuario !== req.params.id);
+    salvarDados(USERS_FILE, usuarios);
+    res.json({ sucesso: true });
+});
+
+app.post('/api/admin/usuarios/:id/reset-senha', verificarToken, (req, res) => {
+    if (req.userContext.role !== 'admin') return res.status(403).json({ erro: 'Negado.' });
+    const u = usuarios.find(x => x.usuario === req.params.id);
+    if(u) { 
+        u.senha = 'Zeus@' + Math.floor(Math.random() * 9999);
+        u.deveAlterarSenha = true; 
+        salvarDados(USERS_FILE, usuarios); 
+        res.json({ sucesso: true, novaSenhaTemp: u.senha });
+    } else {
+        res.json({ sucesso: false, erro: 'Usuário não encontrado' });
+    }
+});
+
+app.post('/api/admin/usuarios/:id/editar', verificarToken, (req, res) => {
+    if (req.userContext.role !== 'admin') return res.status(403).json({ erro: 'Negado.' });
+    const idx = usuarios.findIndex(x => x.usuario === req.params.id);
+    if(idx !== -1) { 
+        usuarios[idx] = { ...usuarios[idx], ...req.body };
+        salvarDados(USERS_FILE, usuarios); 
+        res.json({ sucesso: true });
+    } else {
+        res.json({ sucesso: false, erro: 'Usuário não encontrado' });
+    }
+});
+
 // ==========================================================
-// GESTÃO DE INSTÂNCIAS (QR / PIN)
+// GESTÃO DE INSTÂNCIAS (QR / PIN) E SAÚDE
 // ==========================================================
 app.get('/api/instancias', verificarToken, async (req, res) => {
     try {
@@ -188,11 +296,13 @@ app.get('/api/instancias', verificarToken, async (req, res) => {
 
         const filtradas = list.filter(item => item.instance.instanceName.startsWith(prefixoDono)).map(item => {
             let idExibicao = item.instance.instanceName.split('-')[1] || item.instance.instanceName.replace(prefixoDono, '');
+            if(!saudeNumeros[item.instance.instanceName]) registrarSaude(item.instance.instanceName, 'qtdCampanhas', 0);
             return {
                 nome: item.instance.instanceName,
                 idExibicao: idExibicao.toUpperCase(),
                 status: item.instance.status,
-                numero: item.instance.owner ? item.instance.owner.replace('@s.whatsapp.net', '') : 'Aguardando Sincronização'
+                numero: item.instance.owner ? item.instance.owner.replace('@s.whatsapp.net', '') : 'Aguardando Sincronização',
+                saude: saudeNumeros[item.instance.instanceName] || {}
             };
         });
         res.json({ sucesso: true, instancias: filtradas, limites: usuarios.find(u => u.usuario === prefixoDono) });
@@ -216,6 +326,7 @@ app.post('/api/criar-instancia', verificarToken, async (req, res) => {
         const nomeCompletoInstancia = `${prefixoDono}-${novoIdMaiusculo.toLowerCase()}`;
         
         const response = await axios.post(`${API_URL}/instance/create`, { instanceName: nomeCompletoInstancia, qrcode: true, integration: "WHATSAPP-BAILEYS" }, { headers: evolutionHeaders });
+        registrarSaude(nomeCompletoInstancia, 'qtdCampanhas', 0);
         res.json({ sucesso: true, qrcode: response.data.qrcode.base64, idGerado: novoIdMaiusculo });
     } catch (error) { 
         res.json({ sucesso: false, erro: "Falha ao gerar canal na API." }); 
@@ -242,7 +353,10 @@ app.post('/api/criar-instancia-pin', verificarToken, async (req, res) => {
         const connectResponse = await axios.get(`${API_URL}/instance/connect/${nomeCompletoInstancia}?number=${numeroFormatado}`, { headers: evolutionHeaders });
         
         let pinCode = connectResponse.data?.pairingCode || connectResponse.data?.code;
-        if(pinCode) res.json({ sucesso: true, pairingCode: pinCode, idGerado: novoIdMaiusculo });
+        if(pinCode) {
+            registrarSaude(nomeCompletoInstancia, 'qtdCampanhas', 0);
+            res.json({ sucesso: true, pairingCode: pinCode, idGerado: novoIdMaiusculo });
+        }
         else res.json({ sucesso: false, erro: "API não gerou PIN." });
     } catch (e) { 
         res.json({ sucesso: false, erro: "Falha no pareamento via PIN." }); 
@@ -276,147 +390,17 @@ app.post('/api/instancia/reiniciar', verificarToken, async (req, res) => {
     }
 });
 
-// ==========================================================
-// PROXY DO CHAT AO VIVO BLINDADO CONTRA ERROS DA API
-// ==========================================================
-app.get('/api/chat/contatos', verificarToken, async (req, res) => {
-    const { instancia } = req.query;
-    if (!instancia || !instancia.startsWith(req.userContext.user)) return res.json({ sucesso: false, erro: 'Negado.' });
-
-    try {
-        const response = await axios.get(`${API_URL}/chat/findContacts/${instancia}`, { headers: evolutionHeaders });
-        let dados = [];
-        
-        // Varredura em profundidade para achar onde a API injetou a lista
-        if (Array.isArray(response.data)) {
-            dados = response.data;
-        } else if (response.data && typeof response.data === 'object') {
-            dados = response.data.records || response.data.contacts || Object.values(response.data);
-        }
-        res.json({ sucesso: true, contatos: dados || [] });
-    } catch (e) { 
-        res.json({ sucesso: false, contatos: [] }); 
+// WEBHOOK SIMULADO PARA ATUALIZAR SAUDE (Em produção apontar evolution para esta rota)
+app.post('/api/webhook/evolution', (req, res) => {
+    const { instance, event, data } = req.body;
+    if(event === 'messages.upsert' && !data.key.fromMe) {
+        registrarSaude(instance, 'conversasRespondidas');
     }
-});
-
-app.get('/api/chat/conversas', verificarToken, async (req, res) => {
-    const { instancia } = req.query;
-    if (!instancia || !instancia.startsWith(req.userContext.user)) return res.json({ sucesso: false, erro: 'Negado.' });
-
-    try {
-        const response = await axios.get(`${API_URL}/chat/findChats/${instancia}`, { headers: evolutionHeaders });
-        let dados = [];
-        
-        if (Array.isArray(response.data)) {
-            dados = response.data;
-        } else if (response.data && typeof response.data === 'object') {
-            dados = response.data.records || response.data.chats || Object.values(response.data);
-        }
-        
-        const dadosLimpos = (dados || []).map(chat => ({
-            id: chat.id || chat.remoteJid || '',
-            name: chat.name || chat.pushName || '',
-            message: chat.message || null
-        })).filter(c => c.id);
-
-        res.json({ sucesso: true, conversas: dadosLimpos });
-    } catch (error) { 
-        res.json({ sucesso: false, conversas: [] }); 
+    if(event === 'messages.update') {
+        if(data.status === 'DELIVERY_ACK') registrarSaude(instance, 'mensagensEntregues');
+        if(data.status === 'READ') registrarSaude(instance, 'mensagensLidas');
     }
-});
-
-app.get('/api/chat/mensagens', verificarToken, async (req, res) => {
-    const { instancia, remoteJid } = req.query;
-    if (!instancia || !instancia.startsWith(req.userContext.user)) return res.json({ sucesso: false, erro: 'Negado.' });
-    try {
-        const response = await axios.post(`${API_URL}/chat/findMessages/${instancia}`, { where: { key: { remoteJid: remoteJid } }, limit: 100 }, { headers: evolutionHeaders });
-        let mensagens = [];
-        
-        if (Array.isArray(response.data)) {
-            mensagens = response.data;
-        } else if (response.data && typeof response.data === 'object') {
-            mensagens = response.data.records || response.data.messages || [];
-        }
-
-        mensagens = mensagens.map(m => {
-            if(m.key && m.key.id && msgsApagadas.find(ap => ap.messageId === m.key.id)) m.zeusApagada = true;
-            return m;
-        });
-        res.json({ sucesso: true, mensagens });
-    } catch (error) { 
-        res.json({ sucesso: false, mensagens: [] }); 
-    }
-});
-
-// Envio Totalmente Seguro (Nunca crasheia e envia o 'composing' nativamente)
-app.post('/api/chat/enviar-mensagem', verificarToken, async (req, res) => {
-    const { instancia, remoteJid, texto } = req.body;
-    const numLimpo = remoteJid.split('@')[0];
-    
-    try {
-        await axios.post(`${API_URL}/message/sendText/${instancia}`, { 
-            number: numLimpo, 
-            options: { presence: "composing" },
-            textMessage: { text: texto } 
-        }, { headers: evolutionHeaders });
-        
-        // Retornamos um objeto simples para NÃO serializar buffers brutos de response.data
-        res.json({ sucesso: true });
-    } catch (error) { 
-        res.json({ sucesso: false, erro: error.response?.data?.message || "Falha na API." }); 
-    }
-});
-
-app.post('/api/chat/enviar-media', verificarToken, upload.single('arquivo'), async (req, res) => {
-    const { instancia, remoteJid, legenda } = req.body; 
-    const file = req.file; 
-    if (!file) return res.json({ sucesso: false, erro: "Nenhum arquivo anexado." });
-    
-    const numLimpo = remoteJid.split('@')[0];
-    let mt = 'document'; 
-    if(file.mimetype.includes('image')) mt = 'image'; 
-    if(file.mimetype.includes('video')) mt = 'video';
-    
-    try { 
-        await axios.post(`${API_URL}/message/sendMedia/${instancia}`, { 
-            number: numLimpo, 
-            options: { presence: "composing" }, 
-            mediaMessage: { mediatype: mt, fileName: file.originalname, caption: legenda || "", media: file.buffer.toString('base64') } 
-        }, { headers: evolutionHeaders }); 
-        
-        res.json({ sucesso: true }); 
-    } catch (e) { 
-        res.json({ sucesso: false, erro: "Falha no envio da mídia." }); 
-    }
-});
-
-app.post('/api/chat/enviar-audio', verificarToken, upload.single('audio'), async (req, res) => {
-    const { instancia, remoteJid } = req.body;
-    const numLimpo = remoteJid.split('@')[0];
-    
-    try { 
-        await axios.post(`${API_URL}/message/sendWhatsAppAudio/${instancia}`, { 
-            number: numLimpo, 
-            options: { presence: "recording" }, 
-            audioMessage: { audio: req.file.buffer.toString('base64') } 
-        }, { headers: evolutionHeaders }); 
-        
-        res.json({ sucesso: true });
-    } catch (e) { 
-        res.json({ sucesso: false, erro: "Falha ao enviar áudio." }); 
-    }
-});
-
-app.post('/api/chat/apagar-mensagem', verificarToken, async (req, res) => {
-    const { instancia, remoteJid, messageId } = req.body;
-    try { 
-        await axios.delete(`${API_URL}/chat/deleteMessage/${instancia}`, { headers: evolutionHeaders, data: { number: remoteJid.split('@')[0], messageId: messageId, fromMe: true } }); 
-        msgsApagadas.push({ messageId: messageId, data: new Date().toISOString() }); 
-        salvarDados(AUDIT_FILE, msgsApagadas); 
-        res.json({ sucesso: true }); 
-    } catch (e) { 
-        res.json({ sucesso: false, erro: "Falha ao apagar." }); 
-    }
+    res.sendStatus(200);
 });
 
 // ==========================================================
@@ -424,6 +408,19 @@ app.post('/api/chat/apagar-mensagem', verificarToken, async (req, res) => {
 // ==========================================================
 app.get('/api/campanhas', verificarToken, (req, res) => { 
     res.json({ sucesso: true, campanhas: campanhas.filter(c => c.usuario === req.userContext.user) }); 
+});
+
+app.post('/api/campanhas/:id/status', verificarToken, (req, res) => {
+    const { status } = req.body;
+    const c = campanhas.find(x => x.id === req.params.id && x.usuario === req.userContext.user);
+    if(c) {
+        if (c.status === 'Concluída') return res.json({ sucesso: false, erro: 'Campanha já finalizada.'});
+        c.status = status;
+        salvarDados(CAMPAIGNS_FILE, campanhas);
+        res.json({ sucesso: true });
+    } else {
+        res.json({ sucesso: false, erro: 'Campanha não encontrada.' });
+    }
 });
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -434,8 +431,20 @@ async function processarCampanhaEmSegundoPlano(campanhaId) {
     
     camp.status = 'Em Processamento'; 
     salvarDados(CAMPAIGNS_FILE, campanhas);
+    registrarSaude(camp.remetente, 'qtdCampanhas', 1);
 
-    for (let i = 0; i < camp.listaContatos.length; i++) {
+    for (let i = camp.processados; i < camp.listaContatos.length; i++) {
+        
+        while(camp.status === 'Suspensa') {
+            await sleep(3000);
+            if(!campanhas.find(x => x.id === campanhaId)) return;
+        }
+
+        if(camp.status === 'Cancelada') {
+            salvarDados(CAMPAIGNS_FILE, campanhas);
+            return;
+        }
+
         let raw = camp.listaContatos[i]; 
         let num = formatarNumeroBrasil(raw);
 
@@ -449,6 +458,8 @@ async function processarCampanhaEmSegundoPlano(campanhaId) {
 
         let erroDetectado = false; 
         let motivoErro = '';
+
+        registrarSaude(camp.remetente, 'novasConversasIniciadas');
 
         for (let msg of camp.sequencia) {
             let delayHumano = Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000;
@@ -468,9 +479,11 @@ async function processarCampanhaEmSegundoPlano(campanhaId) {
                         mediaMessage: { mediatype: msg.mimeType.includes('image') ? 'image' : 'document', fileName: msg.fileName, caption: msg.legenda || "", media: msg.base64.split(',')[1] } 
                     }, { headers: evolutionHeaders }); 
                 }
+                registrarSaude(camp.remetente, 'mensagensEnviadas');
             } catch(e) { 
                 erroDetectado = true; 
                 motivoErro = e.response?.data?.message || e.message; 
+                registrarSaude(camp.remetente, 'mensagensNaoChegaram');
                 break; 
             } 
             await sleep(1500);
@@ -490,12 +503,13 @@ async function processarCampanhaEmSegundoPlano(campanhaId) {
         camp.progresso = Math.round((camp.processados / camp.totalContatos) * 100); 
         salvarDados(CAMPAIGNS_FILE, campanhas);
 
-        if (i < camp.listaContatos.length - 1) {
+        if (i < camp.listaContatos.length - 1 && camp.status === 'Em Processamento') {
             let delayFila = Math.floor(Math.random() * (25000 - 15000 + 1)) + 15000;
             await sleep(delayFila);
         }
     } 
-    camp.status = 'Concluída'; 
+    
+    if(camp.status !== 'Cancelada') camp.status = 'Concluída'; 
     salvarDados(CAMPAIGNS_FILE, campanhas);
 }
 
@@ -556,31 +570,70 @@ app.get('/api/campanhas/:id/excel', verificarToken, (req, res) => {
     if(!c) return res.status(404).send('Inexistente.'); 
     
     const wb = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet([["Telefone"], ...c.detalhes.sucessos.map(n => [n.numero])]), "Sucessos");
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet([["Telefone","Status"], ...c.detalhes.semWhats.map(n => [n.numero,'Sem WA'])]), "Sem WA");
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet([["Telefone","Erro do Servidor"], ...c.detalhes.erros.map(n => [n.numero, n.motivo])]), "Erros");
+    
+    // Status Geral da Campanha
+    let statusData = [
+        ["Nome da Campanha", c.nome],
+        ["Data", c.data],
+        ["Status", c.status],
+        ["Total Contatos", c.totalContatos],
+        ["Processados", c.processados],
+        ["Faltantes", c.totalContatos - c.processados]
+    ];
+    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(statusData), "Resumo");
+
+    // Copia das Mensagens e Mídias
+    let seqData = [["Tipo", "Conteúdo/Legenda", "Arquivo"]];
+    c.sequencia.forEach(s => {
+        if(s.tipo === 'texto') seqData.push(['Texto', s.texto, 'N/A']);
+        else seqData.push(['Mídia', s.legenda || 'N/A', s.fileName]);
+    });
+    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(seqData), "Conteudo da Campanha");
+
+    // Relacao de Contatos
+    let contatosData = [["Telefone", "Status Envios", "Detalhe Erro"]];
+    c.detalhes.sucessos.forEach(s => contatosData.push([s.numero, 'Sucesso', '']));
+    c.detalhes.semWhats.forEach(s => contatosData.push([s.numero, 'Sem WhatsApp', '']));
+    c.detalhes.erros.forEach(s => contatosData.push([s.numero, 'Erro', s.motivo]));
+    
+    // Nao processados
+    const processadosAteAgora = [...c.detalhes.sucessos, ...c.detalhes.semWhats, ...c.detalhes.erros].map(x => x.numero);
+    c.listaContatos.forEach(numRaw => {
+        let n = formatarNumeroBrasil(numRaw);
+        if(!processadosAteAgora.includes(n)) {
+            contatosData.push([n, 'Na Fila / Não Enviado', '']);
+        }
+    });
+
+    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(contatosData), "Relação Completa");
     
     res.setHeader('Content-Disposition', `attachment; filename=rel_${c.nome}.xlsx`); 
     res.send(xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' }));
 });
 
-app.get('/api/campanhas/:id/pdf', verificarToken, (req, res) => {
-    const c = campanhas.find(x => x.id === req.params.id); 
-    if (!c) return res.status(404).send('Inexistente.'); 
-    
+app.get('/api/saude/:instancia/relatorio', verificarToken, (req, res) => {
+    const inst = req.params.instancia;
+    if(!inst.startsWith(req.userContext.user)) return res.status(403).send('Negado');
+    const saude = saudeNumeros[inst] || null;
+    if(!saude) return res.status(404).send('Dados não encontrados.');
+
     const d = new PDFDocument({ margin: 50 });
-    res.setHeader('Content-Disposition', `attachment; filename=rel_${c.nome}.pdf`); 
+    res.setHeader('Content-Disposition', `attachment; filename=saude_${inst}.pdf`); 
     d.pipe(res);
+
+    d.fillColor('#075e54').fontSize(22).text('ZEUS-LITE - SAÚDE DO NÚMERO', { align: 'center' }).moveDown(); 
+    d.fillColor('#333').fontSize(12).text(`Número/Instância: ${inst.split('-')[1].toUpperCase()}`).moveDown();
     
-    d.fillColor('#075e54').fontSize(22).text('ZEUS-LITE - RELATÓRIO DA CAMPANHA', { align: 'center' }).moveDown(); 
-    d.fillColor('#333').fontSize(12).text(`Campanha: ${c.nome}`).text(`Data: ${c.data}`).moveDown();
-    d.fillColor('#23a55a').text(`Sucessos: ${c.detalhes.sucessos.length}`)
-     .fillColor('#f85149').text(`Erros: ${c.detalhes.erros.length}`)
-     .fillColor('#58a6ff').text(`Sem WA: ${c.detalhes.semWhats.length}`).moveDown();
-     
-    c.detalhes.semWhats.forEach(i => d.fillColor('#58a6ff').text(`[Sem WA] Num: ${i.numero}`)); 
-    c.detalhes.erros.forEach(i => d.fillColor('#f85149').text(`[Erro] Num: ${i.numero} - ${i.motivo}`)); 
+    d.text(`Data da Primeira Conexão: ${new Date(saude.dataPrimeiraConexao).toLocaleString()}`);
+    d.text(`Total de Campanhas Executadas: ${saude.qtdCampanhas}`);
+    d.text(`Novas Conversas Iniciadas: ${saude.novasConversasIniciadas}`);
+    d.text(`Mensagens Enviadas (Total): ${saude.mensagensEnviadas}`);
+    d.text(`Mensagens Entregues (Chegaram): ${saude.mensagensEntregues}`);
+    d.text(`Mensagens Lidas: ${saude.mensagensLidas}`);
+    d.text(`Conversas Respondidas Após Envio: ${saude.conversasRespondidas}`);
+    d.text(`Mensagens Bloqueadas/Não Chegaram: ${saude.mensagensNaoChegaram}`);
     
+    d.moveDown().fontSize(16).text(`Score de Saúde Meta: ${saude.score.toFixed(2)} / 100`, { align: 'center' });
     d.end();
 });
 

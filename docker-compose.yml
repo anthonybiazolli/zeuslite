@@ -1,62 +1,67 @@
-version: '3.8'
-
 services:
-  # Banco de Dados Corrigido (MongoDB)
+  # Banco de Dados (Ambiente de Testes)
   mongodb:
     image: mongo:6
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=senha_segura_123
+      - MONGO_INITDB_ROOT_PASSWORD=testezzeus2026x9y8z7
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_test_data:/data/db
     restart: always
 
-  # Sistema de Cache
+  # Sistema de Cache (Ambiente de Testes)
   redis:
     image: redis:7
     ports:
-      - "6379:6379"
+      - "6381:6379"
     volumes:
-      - redis_data:/data
+      - redis_test_data:/data
     restart: always
 
-  # API Open Source do WhatsApp (Evolution API)
+  # API Open Source do WhatsApp (Ambiente de Testes)
   evolution-api:
-    image: atendai/evolution-api:v1.8.2
+    image: evoapicloud/evolution-api:v1.8.2
     depends_on:
       - mongodb
       - redis
     ports:
-      - "8080:8080"
+      - "8181:8080" 
     environment:
       - SERVER_PORT=8080
-      
-      # Autenticação
       - AUTHENTICATION_TYPE=apikey
-      - AUTHENTICATION_API_KEY=SuaChaveSecretaMaster123
+      - AUTHENTICATION_API_KEY=testezzeus2026x9y8z7
       
-      # Banco de Dados (Agora configurado para o MongoDB)
+      # Banco de Dados
       - DATABASE_ENABLED=true
-      - DATABASE_CONNECTION_URI=mongodb://root:senha_segura_123@mongodb:27017/?authSource=admin
-      - DATABASE_CONNECTION_DB_PREFIX_NAME=evolution
+      - DATABASE_PROVIDER=mongodb
+      - DATABASE_CONNECTION_URI=mongodb://root:testezzeus2026x9y8z7@mongodb:27017/?authSource=admin
+      - DATABASE_CONNECTION_DB_PREFIX_NAME=tstx9z2p41
       
       # Cache
       - CACHE_REDIS_ENABLED=true
       - CACHE_REDIS_URI=redis://redis:6379
-      - CACHE_REDIS_PREFIX_KEY=evolution
+      - CACHE_REDIS_PREFIX_KEY=tstx9z2p41
     restart: always
 
-  # Nosso Painel SaaS (Frontend e Backend)
+  # Nosso Painel SaaS (Ambiente de Testes)
   saas-app:
     build: ./app
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - evolution-api
     restart: always
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=512
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
 
 volumes:
-  mongodb_data:
-  redis_data:
+  mongodb_test_data:
+  redis_test_data:
