@@ -390,6 +390,7 @@ app.post('/api/instancia/reiniciar', verificarToken, async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // WEBHOOK SIMULADO PARA ATUALIZAR SAUDE (Em produção apontar evolution para esta rota)
 app.post('/api/webhook/evolution', (req, res) => {
     const { instance, event, data } = req.body;
@@ -399,6 +400,144 @@ app.post('/api/webhook/evolution', (req, res) => {
     if(event === 'messages.update') {
         if(data.status === 'DELIVERY_ACK') registrarSaude(instance, 'mensagensEntregues');
         if(data.status === 'READ') registrarSaude(instance, 'mensagensLidas');
+=======
+// ==========================================================
+// PROXY DO CHAT AO VIVO BLINDADO CONTRA ERROS DA API
+// ==========================================================
+app.get('/api/chat/contatos', verificarToken, async (req, res) => {
+    const { instancia } = req.query;
+    if (!instancia || !instancia.startsWith(req.userContext.user)) return res.json({ sucesso: false, erro: 'Negado.' });
+
+    try {
+        const response = await axios.get(`${API_URL}/chat/findContacts/${instancia}`, { headers: evolutionHeaders });
+        let dados = [];
+        
+        if (Array.isArray(response.data)) {
+            dados = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+            dados = response.data.records || response.data.contacts || Object.values(response.data);
+        }
+        res.json({ sucesso: true, contatos: dados || [] });
+    } catch (e) { 
+        res.json({ sucesso: false, contatos: [] }); 
+    }
+});
+
+app.get('/api/chat/conversas', verificarToken, async (req, res) => {
+    const { instancia } = req.query;
+    if (!instancia || !instancia.startsWith(req.userContext.user)) return res.json({ sucesso: false, erro: 'Negado.' });
+
+    try {
+        const response = await axios.get(`${API_URL}/chat/findChats/${instancia}`, { headers: evolutionHeaders });
+        let dados = [];
+        
+        if (Array.isArray(response.data)) {
+            dados = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+            dados = response.data.records || response.data.chats || Object.values(response.data);
+        }
+        
+        const dadosLimpos = (dados || []).map(chat => ({
+            id: chat.id || chat.remoteJid || '',
+            name: chat.name || chat.pushName || '',
+            message: chat.message || null
+        })).filter(c => c.id);
+
+        res.json({ sucesso: true, conversas: dadosLimpos });
+    } catch (error) { 
+        res.json({ sucesso: false, conversas: [] }); 
+    }
+});
+
+app.get('/api/chat/mensagens', verificarToken, async (req, res) => {
+    const { instancia, remoteJid } = req.query;
+    if (!instancia || !instancia.startsWith(req.userContext.user)) return res.json({ sucesso: false, erro: 'Negado.' });
+    try {
+        const response = await axios.post(`${API_URL}/chat/findMessages/${instancia}`, { where: { key: { remoteJid: remoteJid } }, limit: 100 }, { headers: evolutionHeaders });
+        let mensagens = [];
+        
+        if (Array.isArray(response.data)) {
+            mensagens = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+            mensagens = response.data.records || response.data.messages || [];
+        }
+
+        mensagens = mensagens.map(m => {
+            if(m.key && m.key.id && msgsApagadas.find(ap => ap.messageId === m.key.id)) m.zeusApagada = true;
+            return m;
+        });
+        res.json({ sucesso: true, mensagens });
+    } catch (error) { 
+        res.json({ sucesso: false, mensagens: [] }); 
+    }
+});
+
+app.post('/api/chat/enviar-mensagem', verificarToken, async (req, res) => {
+    const { instancia, remoteJid, texto } = req.body;
+    const numLimpo = remoteJid.split('@')[0];
+    
+    try {
+        await axios.post(`${API_URL}/message/sendText/${instancia}`, { 
+            number: numLimpo, 
+            options: { presence: "composing" },
+            textMessage: { text: texto } 
+        }, { headers: evolutionHeaders });
+        res.json({ sucesso: true });
+    } catch (error) { 
+        res.json({ sucesso: false, erro: error.response?.data?.message || "Falha na API." }); 
+    }
+});
+
+app.post('/api/chat/enviar-media', verificarToken, upload.single('arquivo'), async (req, res) => {
+    const { instancia, remoteJid, legenda } = req.body; 
+    const file = req.file; 
+    if (!file) return res.json({ sucesso: false, erro: "Nenhum arquivo anexado." });
+    
+    const numLimpo = remoteJid.split('@')[0];
+    let mt = 'document'; 
+    if(file.mimetype.includes('image')) mt = 'image'; 
+    if(file.mimetype.includes('video')) mt = 'video';
+    
+    try { 
+        await axios.post(`${API_URL}/message/sendMedia/${instancia}`, { 
+            number: numLimpo, 
+            options: { presence: "composing" }, 
+            mediaMessage: { mediatype: mt, fileName: file.originalname, caption: legenda || "", media: file.buffer.toString('base64') } 
+        }, { headers: evolutionHeaders }); 
+        
+        res.json({ sucesso: true }); 
+    } catch (e) { 
+        res.json({ sucesso: false, erro: "Falha no envio da mídia." }); 
+    }
+});
+
+app.post('/api/chat/enviar-audio', verificarToken, upload.single('audio'), async (req, res) => {
+    const { instancia, remoteJid } = req.body;
+    const numLimpo = remoteJid.split('@')[0];
+    
+    try { 
+        await axios.post(`${API_URL}/message/sendWhatsAppAudio/${instancia}`, { 
+            number: numLimpo, 
+            options: { presence: "recording" }, 
+            audioMessage: { audio: req.file.buffer.toString('base64') } 
+        }, { headers: evolutionHeaders }); 
+        
+        res.json({ sucesso: true });
+    } catch (e) { 
+        res.json({ sucesso: false, erro: "Falha ao enviar áudio." }); 
+    }
+});
+
+app.post('/api/chat/apagar-mensagem', verificarToken, async (req, res) => {
+    const { instancia, remoteJid, messageId } = req.body;
+    try { 
+        await axios.delete(`${API_URL}/chat/deleteMessage/${instancia}`, { headers: evolutionHeaders, data: { number: remoteJid.split('@')[0], messageId: messageId, fromMe: true } }); 
+        msgsApagadas.push({ messageId: messageId, data: new Date().toISOString() }); 
+        salvarDados(AUDIT_FILE, msgsApagadas); 
+        res.json({ sucesso: true }); 
+    } catch (e) { 
+        res.json({ sucesso: false, erro: "Falha ao apagar." }); 
+>>>>>>> 32a25d703efa050d3920c180ff263d9683117282
     }
     res.sendStatus(200);
 });

@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Zeus-Lite | Automação e SaaS para WhatsApp</title>
+=======
+    <title>Zeus-Lite - Dashboard Integrada</title>
+>>>>>>> 32a25d703efa050d3920c180ff263d9683117282
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +15,7 @@
 
     <style>
         :root {
+<<<<<<< HEAD
             --bg-body: #05070a;
             --bg-glass: rgba(16, 20, 28, 0.65);
             --zeus-green: #00e676;
@@ -179,10 +184,158 @@
             header { padding: 20px; flex-direction: column; gap: 20px; }
             .hero { padding-top: 150px; }
         }
+=======
+            --bg-body: #05070a; 
+            --bg-glass: rgba(16, 20, 28, 0.65); 
+            --bg-input: rgba(5, 7, 10, 0.8);
+            --border-color: rgba(0, 229, 255, 0.15); 
+            --border-highlight: rgba(0, 229, 255, 0.4);
+            --text-main: #e0e6ed; 
+            --text-muted: #8b949e;
+            --zeus-green: #00e676; 
+            --zeus-blue: #00e5ff; 
+            --zeus-red: #ff1744; 
+            --zeus-purple: #b000ff;
+            --glow-blue: 0 0 15px rgba(0, 229, 255, 0.3);
+            --glow-green: 0 0 15px rgba(0, 230, 118, 0.3);
+            --glow-red: 0 0 15px rgba(255, 23, 68, 0.3);
+        }
+
+        /* Background com Papel de Parede e Efeito Vidro */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 0; 
+            color: var(--text-main); 
+            background-color: var(--bg-body);
+        }
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop'); 
+            background-size: cover; background-position: center; z-index: -2; opacity: 0.6;
+        }
+        body::after {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(5,7,10,0.9) 0%, rgba(13,18,25,0.8) 100%);
+            backdrop-filter: blur(8px); z-index: -1;
+        }
+
+        h1, h2, h3 { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .logo-svg { vertical-align: middle; margin-right: 10px; filter: drop-shadow(0 0 8px var(--zeus-blue)); }
+
+        .login-wrapper { 
+            max-width: 420px; margin: 100px auto; 
+            background: var(--bg-glass); padding: 40px 30px; 
+            border-radius: 16px; border: 1px solid var(--border-color); 
+            display: none; box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,229,255,0.05); 
+            backdrop-filter: blur(12px);
+        }
+        .login-wrapper.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #view-main { display: none; }
+        
+        .navbar { 
+            background: rgba(10, 14, 20, 0.8); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color); 
+            display: flex; padding: 0 30px; gap: 15px; align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .nav-brand { 
+            color: var(--zeus-blue); font-family: 'Orbitron', sans-serif; 
+            font-weight: 700; font-size: 22px; padding: 15px 20px 15px 0; 
+            letter-spacing: 2px; text-shadow: var(--glow-blue); display: flex; align-items: center;
+        }
+        .nav-item { 
+            background: none; border: none; color: var(--text-muted); 
+            padding: 22px 15px; font-size: 14px; cursor: pointer; 
+            font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; font-size: 16px;
+        }
+        .nav-item:hover { color: var(--text-main); text-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        .nav-item.active { color: var(--zeus-blue); border-bottom-color: var(--zeus-blue); text-shadow: var(--glow-blue); }
+        
+        .main-content { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: none; animation: fadeIn 0.4s ease; }
+        
+        .section { 
+            background: var(--bg-glass); border: 1px solid var(--border-color); 
+            border-radius: 12px; padding: 25px; margin-bottom: 30px; 
+            backdrop-filter: blur(10px); box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            transition: border 0.3s ease;
+        }
+        .section:hover { border-color: var(--border-highlight); }
+        h2 { font-size: 20px; margin-top: 0; margin-bottom: 20px; color: var(--zeus-blue); display: flex; align-items: center; gap: 10px; }
+        
+        input, select, textarea { 
+            width: 100%; padding: 14px; margin-bottom: 18px; 
+            border: 1px solid var(--border-color); border-radius: 8px; 
+            background-color: var(--bg-input); color: var(--text-main); 
+            box-sizing: border-box; transition: all 0.3s ease; font-family: 'Inter', sans-serif;
+        }
+        input:focus, select:focus, textarea:focus { 
+            outline: none; border-color: var(--zeus-blue); box-shadow: var(--glow-blue); 
+        }
+        
+        button { 
+            background: linear-gradient(90deg, #00b050, var(--zeus-green)); 
+            color: #000; border: none; padding: 14px 20px; font-size: 15px; 
+            border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; 
+            margin-bottom: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: var(--glow-green); filter: brightness(1.2); }
+        
+        .btn-blue { background: linear-gradient(90deg, #0091ea, var(--zeus-blue)); color: #000; }
+        .btn-blue:hover { box-shadow: var(--glow-blue); }
+        
+        .btn-red { background: linear-gradient(90deg, #d50000, var(--zeus-red)); color: #fff; }
+        .btn-red:hover { box-shadow: var(--glow-red); }
+        
+        .btn-gray { background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-gray:hover { background: rgba(255,255,255,0.1); box-shadow: none; color: #fff; }
+        
+        .btn-inline { width: auto; padding: 10px 18px; margin-right: 8px; font-size: 13px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: var(--bg-input); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        th { background-color: rgba(0, 229, 255, 0.05); color: var(--zeus-blue); font-family: 'Rajdhani', sans-serif; font-size: 16px; letter-spacing: 1px; }
+        tr:hover td { background-color: rgba(255,255,255,0.02); }
+        
+        .status-box { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; display: none; margin-top: 15px; border: 1px solid transparent; }
+        .impersonate-banner { background: linear-gradient(90deg, var(--zeus-purple), #650099); color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; display: none; text-transform: uppercase; letter-spacing: 2px;}
+
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index:9999; display:none; justify-content:center; align-items:center; }
+        .modal-box { background: var(--bg-glass); padding: 35px; border-radius: 16px; border: 1px solid var(--border-color); width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        .flex-row { display: flex; gap: 25px; flex-wrap: wrap; }
+        .col-left { flex: 1.5; min-width: 300px;}
+        .col-right { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 280px;}
+        
+        .msg-block { background: var(--bg-input); border: 1px solid rgba(0, 229, 255, 0.2); padding: 20px; margin-bottom: 15px; border-radius: 10px; position: relative; transition: border 0.3s; }
+        .msg-block:hover { border-color: var(--zeus-blue); }
+        .remove-btn { position: absolute; top: -10px; right: -10px; background: var(--zeus-red); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 12px; box-shadow: var(--glow-red); font-weight: bold;}
+        
+        .progress-container { background-color: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; margin-top: 8px; width: 100%; height: 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+        .progress-bar { background: linear-gradient(90deg, #00b050, var(--zeus-green)); height: 100%; width: 0%; transition: width 0.4s ease; box-shadow: var(--glow-green); }
+        
+        .badge { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; letter-spacing: 1px; font-family: 'Rajdhani', sans-serif;}
+        .badge-open { background-color: rgba(0, 230, 118, 0.15); color: var(--zeus-green); border: 1px solid var(--zeus-green); box-shadow: var(--glow-green);}
+        .badge-closed { background-color: rgba(255, 23, 68, 0.15); color: var(--zeus-red); border: 1px solid var(--zeus-red); box-shadow: var(--glow-red);}
+
+        /* PREVIEW CELULAR REFORMULADO */
+        .celular { width: 300px; height: 500px; border: 12px solid #1a1f26; border-radius: 30px; background-color: #0b141a; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(0,0,0,0.5); position: relative; }
+        .celular::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 25px; background: #1a1f26; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
+        .celular-header { background: #202c33; padding: 30px 15px 15px 15px; color: white; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: bold; border-bottom: 1px solid #2a3942; display: flex; align-items: center; gap: 10px;}
+        .celular-chat { padding: 15px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover;}
+        .balao { background-color: #005c4b; padding: 10px 12px; border-radius: 10px 0 10px 10px; max-width: 85%; align-self: flex-end; margin-bottom: 10px; font-size: 13px; color: #e9edef; box-shadow: 0 1px 2px rgba(0,0,0,0.3); line-height: 1.4;}
+        .balao-media { background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-size: 12px; margin-bottom: 6px; border-left: 3px solid var(--zeus-green);}
+        
+        .dev-mode-box { border: 2px dashed var(--zeus-red); background: rgba(255, 23, 68, 0.05); }
+>>>>>>> 32a25d703efa050d3920c180ff263d9683117282
     </style>
 </head>
 <body>
 
+<<<<<<< HEAD
     <header>
         <a href="#" class="logo">
             <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -222,5 +375,585 @@
         &copy; 2026 ZEUS-LITE CORPORATION. TODOS OS DIREITOS RESERVADOS.
     </footer>
 
+=======
+<div class="modal-overlay" id="modal-novo-pin">
+    <div class="modal-box">
+        <h2 style="justify-content: center;">Autenticação via PIN</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Insira o número do WhatsApp que você deseja conectar (com DDD).</p>
+        <input type="text" id="iptModalNumeroPin" placeholder="Ex: 41999999999">
+        <div style="display:flex; gap:15px; margin-top: 10px;">
+            <button class="btn-gray" onclick="fecharModalPin()">Cancelar</button>
+            <button class="btn-blue" onclick="confirmarPin()">Gerar PIN</button>
+        </div>
+    </div>
+</div>
+
+<div id="banner-emp" class="impersonate-banner">⚡ Modo Emulação Ativo. <a href="#" onclick="cancelarEmulacao()" style="color:white; font-weight:bold; text-decoration:underline; margin-left: 10px;">Retornar à conta Admin</a></div>
+
+<div class="auth-container">
+    <div class="login-wrapper active" id="box-login-p1">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <svg class="logo-svg" width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,2 98,25 98,75 50,98 2,75 2,25" stroke="var(--zeus-blue)" stroke-width="4" fill="rgba(0, 229, 255, 0.05)"/>
+                <path d="M30,35 L70,35 L45,55 L65,55 L35,80 L45,60 L25,60 Z" fill="var(--zeus-green)" filter="drop-shadow(0 0 8px var(--zeus-green))"/>
+            </svg>
+        </div>
+        <h1 style="text-align:center; color:var(--zeus-green); margin-bottom:5px; border:none; text-shadow: var(--glow-green);">ZEUS-LITE</h1>
+        <p style="text-align:center; color:var(--text-muted); font-size:14px; margin-bottom:30px; margin-top:0; font-family: 'Orbitron', sans-serif;">SaaS Portal Corporativo</p>
+        <input type="text" id="iptUser" placeholder="Seu usuário de acesso">
+        <input type="password" id="iptPass" placeholder="Sua senha de segurança">
+        <button onclick="loginPasso1()" style="margin-top: 10px;">Autenticar Acesso</button>
+        <div id="login-err-p1" class="status-box" style="background: rgba(255,23,68,0.2); color: var(--zeus-red); border-color: var(--zeus-red);"></div>
+    </div>
+
+    <div class="login-wrapper" id="box-login-2fa">
+        <h1 style="text-align:center; color:var(--zeus-blue); margin-bottom:15px; border:none; text-shadow: var(--glow-blue);">SEGURANÇA 2FA</h1>
+        <div id="setup-2fa-area" style="display:none; text-align:center; margin-bottom:20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+            <p style="font-size:13px; margin-top:0;">Abra o <b>Google Authenticator</b> no celular e escaneie o código:</p>
+            <img id="img-qrcode-2fa" src="" style="border:2px solid var(--zeus-blue); border-radius:8px; margin:10px auto; max-width:180px; display:block; box-shadow: var(--glow-blue);">
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:0;">Código manual: <b id="text-secret-2fa" style="color:var(--text-main);"></b></p>
+        </div>
+        <p style="font-size:14px; text-align:center;">Insira o token de 6 dígitos gerado no app:</p>
+        <input type="text" id="iptToken2fa" placeholder="000000" maxlength="6" style="text-align:center; font-size:24px; letter-spacing:8px; font-family: 'Orbitron', sans-serif; font-weight: bold;">
+        <button class="btn-blue" onclick="loginVerificar2fa()">Validar Token</button>
+        <div id="login-err-2fa" class="status-box" style="background: rgba(255,23,68,0.2); color: var(--zeus-red); border-color: var(--zeus-red);"></div>
+    </div>
+
+    <div class="login-wrapper" id="box-login-forcepass">
+        <h1 style="text-align:center; color:var(--zeus-purple); margin-bottom:15px; border:none; text-shadow: 0 0 15px rgba(176,0,255,0.5);">NOVA SENHA</h1>
+        <p style="font-size:14px; color:var(--text-muted); text-align:center; margin-bottom:25px;">Primeiro acesso detectado. Escolha uma senha pessoal definitiva para garantir a segurança da conta:</p>
+        <input type="password" id="iptNewPass" placeholder="Nova senha segura">
+        <button style="background: linear-gradient(90deg, #650099, var(--zeus-purple)); box-shadow: 0 0 15px rgba(176,0,255,0.3);" onclick="alterarSenhaObrigatoria()">Salvar e Acessar</button>
+    </div>
+</div>
+
+<div id="view-main">
+    <nav class="navbar">
+        <div class="nav-brand">
+            <svg class="logo-svg" width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,2 98,25 98,75 50,98 2,75 2,25" stroke="var(--zeus-blue)" stroke-width="4" fill="rgba(0, 229, 255, 0.05)"/>
+                <path d="M30,35 L70,35 L45,55 L65,55 L35,80 L45,60 L25,60 Z" fill="var(--zeus-green)"/>
+            </svg>
+            ZEUS-LITE
+        </div>
+        <button class="nav-item active" id="tab-btn-conn" onclick="alternarAba('conn')">CONEXÕES</button>
+        <button class="nav-item" id="tab-btn-chat" onclick="alternarAba('chat')">CHAT AO VIVO</button>
+        <button class="nav-item" id="tab-btn-disp" onclick="alternarAba('disp')">DISPAROS & CAMPANHAS</button>
+        <button class="nav-item" id="tab-btn-admin" onclick="alternarAba('admin')" style="display:none; color: var(--zeus-purple); text-shadow: 0 0 10px rgba(176,0,255,0.4);">PAINEL ADMIN</button>
+        <button class="nav-item" onclick="executarLogout()" style="margin-left: auto; color: var(--zeus-red); border: 1px solid rgba(255,23,68,0.3); border-radius: 6px; padding: 10px 20px; margin-top: 10px; margin-bottom: 10px;">DESCONECTAR</button>
+    </nav>
+
+    <div class="main-content" id="aba-conn" style="display:block;">
+        <div class="section">
+            <h2><span style="font-size:24px;">📡</span> Adicionar Novo Canal WhatsApp</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">O sistema criará automaticamente um ID exclusivo de 6 dígitos para esta conexão de forma autônoma e criptografada.</p>
+            
+            <div style="display: flex; gap: 15px; max-width: 550px;">
+                <button onclick="requisitarQrCode()">Conectar via QR Code</button>
+                <button class="btn-blue" onclick="abrirModalPin()">Conectar via PIN CÓDIGO</button>
+            </div>
+            
+            <div id="qr-area" style="margin-top: 25px; display: none; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                <p id="txt-qr" style="font-size: 15px;">Aproxime o celular:</p>
+                <img id="img-qr" src="" style="border: 4px solid var(--zeus-blue); max-width: 220px; border-radius:12px; box-shadow: var(--glow-blue);">
+            </div>
+
+            <div id="pin-area" style="margin-top: 25px; display: none; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 12px; border: 1px solid var(--zeus-blue); text-align: center; box-shadow: var(--glow-blue);">
+                <p id="txt-pin" style="color: var(--text-main); font-size: 15px; margin-top:0;">Solicitando código de pareamento remoto...</p>
+                <div id="display-pin" style="display: none; background: #000; padding: 20px 40px; font-size: 42px; letter-spacing: 15px; font-weight: bold; border-radius: 12px; color: var(--zeus-blue); margin: 15px auto; width: fit-content; border: 1px solid rgba(0,229,255,0.3); font-family: 'Orbitron', sans-serif;"></div>
+            </div>
+        </div>
+        <div class="section">
+            <h2><span style="font-size:24px;">📱</span> Meus Canais Configurados</h2>
+            <p id="lbl-limite-conn" style="color: var(--text-muted); font-size:14px; margin-bottom: 15px;"></p>
+            <table>
+                <thead><tr><th>ID do Canal</th><th>Número Atrelado</th><th>Status da Rede</th><th>Ações Administrativas</th></tr></thead>
+                <tbody id="lista-canais-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-content" id="aba-chat">
+        <div class="section dev-mode-box" style="text-align: center; padding: 100px 20px;">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--zeus-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(255,23,68,0.6));">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <h1 style="font-family: 'Orbitron', sans-serif; font-size: 42px; color: var(--zeus-red); text-shadow: var(--glow-red); margin: 0 0 20px 0; letter-spacing: 2px;">EM DESENVOLVIMENTO!</h1>
+            <p style="color: var(--text-main); font-size: 18px; max-width: 650px; margin: 0 auto; font-family: 'Inter', sans-serif; line-height: 1.6;">
+                Este serviço ainda não está disponível.<br>
+                Estamos preparando uma arquitetura de chat revolucionária para sua operação.<br>
+                <span style="color: var(--text-muted); font-size: 15px; display: block; margin-top: 15px;">Por favor, utilize a aba de Disparos & Campanhas.</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="main-content" id="aba-disp">
+        <div class="section">
+            <h2><span style="font-size:24px;">🚀</span> Criar Grade de Campanha</h2>
+            <label style="font-weight: 600; color: var(--zeus-blue); display:block; margin-bottom: 8px;">Escolha o Canal Remetente Ativo:</label>
+            <select id="selRemetenteCampanha"><option value="">Nenhum canal selecionado</option></select>
+            <input type="text" id="nomeCampanha" placeholder="Nome identificador da Campanha (Ex: Promoção Black Friday)">
+
+            <div class="flex-row" style="margin-top: 25px;">
+                <div class="col-left">
+                    <h3 style="color: white; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Esteira Sequencial de Mensagens</h3>
+                    <div id="bloco-mensagens-esteira" style="margin-top: 15px;"></div>
+                    <div style="display:flex; gap:15px; margin-top: 20px;">
+                        <button onclick="criarBlocoTexto()" class="btn-gray">+ Adicionar Texto</button>
+                        <button onclick="criarBlocoMedia()" class="btn-gray">+ Adicionar Arquivo</button>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <h3 style="color: white; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; width: 100%; text-align: center;">Visualização Prévia</h3>
+                    <div class="celular" style="margin-top: 15px;">
+                        <div class="celular-header">
+                            <div style="width: 30px; height: 30px; background: #dfe5e7; border-radius: 50%; display: flex; align-items:center; justify-content:center; color:#111b21;">👤</div>
+                            <span>Cliente Destino</span>
+                        </div>
+                        <div class="celular-chat" id="preview-chat-celular"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px; color: var(--zeus-blue); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Destinatários e Execução</h3>
+            <div class="flex-row" style="margin-top: 15px;">
+                <div style="flex:1; background: rgba(0,0,0,0.4); padding:25px; border-radius:12px; border:1px solid var(--border-color);">
+                    <label style="font-weight: 600; display:block; margin-bottom:10px;">Mapeamento Manual:</label>
+                    <input type="text" id="txtNumerosManuais" placeholder="Números separados por vírgula (ex: 41999999999, 11988888888)">
+                    <button onclick="dispararCampanha('manual')">⚡ Iniciar Disparo Manual</button>
+                </div>
+                <div style="flex:1; background: rgba(0,0,0,0.4); padding:25px; border-radius:12px; border:1px solid var(--border-color);">
+                    <label style="font-weight: 600; display:block; margin-bottom:10px;">Mapeamento via Excel:</label>
+                    <button class="btn-gray" onclick="window.open('/api/planilha-modelo')" style="color: var(--zeus-blue); font-size:13px; padding:10px; border-color: var(--zeus-blue);">📥 Baixar Planilha Modelo (.XLSX)</button>
+                    <input type="file" id="fileExcelCampanha" accept=".xlsx, .xls" style="color: var(--text-muted); margin-top:15px; display:block; background: transparent; border: 1px dashed var(--text-muted);">
+                    <button onclick="dispararCampanha('planilha')" class="btn-blue" style="margin-top:15px;">⚙️ Processar e Disparar Excel</button>
+                </div>
+            </div>
+            <div id="box-envio-status" class="status-box"></div>
+        </div>
+
+        <div class="section">
+            <h2><span style="font-size:24px;">📊</span> Histórico de Campanhas Realizadas</h2>
+            <table>
+                <thead>
+                    <tr><th>Data</th><th>Identificação da Campanha</th><th>Canal Base</th><th>Status da Fila</th><th>Progresso de Entrega</th><th>Relatórios</th></tr>
+                </thead>
+                <tbody id="lista-campanhas-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-content" id="aba-admin">
+        <div class="section">
+            <h2><span style="font-size:24px;">🛡️</span> Provisionar Novo Usuário SaaS</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top: 20px;">
+                <div><label>Nome Completo do Usuário:</label><input type="text" id="admNomeCompleto" placeholder="Ex: Anthony Melk"></div>
+                <div><label>Login de Acesso (Exclusivo):</label><input type="text" id="admUser" placeholder="Ex: anthonymelk"></div>
+                <div><label>Senha Inicial Criptografada:</label><input type="password" id="admPass" placeholder="Digite uma senha inicial"></div>
+                <div><label>Endereço de E-mail:</label><input type="email" id="admEmail" placeholder="cliente@provedor.com"></div>
+                <div><label>Telefone de Contato:</label><input type="text" id="admTelefone" placeholder="(41) 99999-9999"></div>
+                <div>
+                    <label>Tipo de Perfil de Usuário:</label>
+                    <select id="admTipoUsuario">
+                        <option value="Cliente Pro">Cliente Pro</option>
+                        <option value="Cliente Teste">Cliente Teste</option>
+                        <option value="Afiliado">Afiliado</option>
+                        <option value="Parceiro">Parceiro</option>
+                    </select>
+                </div>
+                <div><label>Código de Controle Interno Administrativo:</label><input type="text" id="admCodigoInterno" placeholder="Ex: CTRL-2026-PR"></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div><label>Max Instâncias WA:</label><input type="number" id="admMaxConn" value="2"></div>
+                    <div><label>Envios Diários:</label><input type="number" id="admMaxEnvios" value="500"></div>
+                </div>
+            </div>
+            <button onclick="criarUsuarioSaaS()" style="max-width:300px; margin-top:25px; background: linear-gradient(90deg, #650099, var(--zeus-purple)); box-shadow: 0 0 15px rgba(176,0,255,0.4);">Cadastrar e Salvar Usuário</button>
+        </div>
+        <div class="section">
+            <h2><span style="font-size:24px;">👥</span> Usuários Ativos na Plataforma</h2>
+            <table>
+                <thead>
+                    <tr><th>Nome / Ref Interna</th><th>Login System</th><th>Perfil / Contato</th><th>Limites de Infraestrutura</th><th>Painel de Gestão Direta</th></tr>
+                </thead>
+                <tbody id="lista-usuarios-adm-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let token = localStorage.getItem('zeusToken');
+    let userRole = localStorage.getItem('zeusRole');
+    let userLogged = localStorage.getItem('zeusUser');
+    let gradeCampanha = [];
+    let bCount = 0;
+    let pollInterval = null;
+    let tempUserLogin = '';
+
+    if(token) {
+        document.getElementById('box-login-p1').classList.remove('active');
+        document.getElementById('view-main').style.display = 'block';
+        if(userRole === 'admin') document.getElementById('tab-btn-admin').style.display = 'block';
+        if(localStorage.getItem('zeusImpersonated') === 'true') document.getElementById('banner-emp').style.display = 'block';
+        inicializarModulos();
+    }
+
+    function alternarAba(aba) {
+        document.querySelectorAll('.main-content').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(`aba-${aba}`).style.display = 'block';
+        document.getElementById(`tab-btn-${aba}`).classList.add('active');
+        // Removida chamada para o chat ao vivo para não gerar erros na tela de desenvolvimento
+    }
+
+    function formatarNumeroBrasil(numero) {
+        if (!numero) return '';
+        let limpo = numero.toString().replace(/\D/g, ''); 
+        if (limpo.length === 10 || limpo.length === 11) return `55${limpo}`;
+        return limpo;
+    }
+
+    // ==========================================
+    // FLUXO DE LOGIN COMPLETO E 2FA
+    // ==========================================
+    async function loginPasso1() {
+        const usuario = document.getElementById('iptUser').value;
+        const senha = document.getElementById('iptPass').value;
+        const err = document.getElementById('login-err-p1');
+        err.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/login/passo1', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario, senha}) });
+            const data = await res.json();
+            
+            if (!res.ok) { err.style.display='block'; err.innerText = data.erro; return; }
+
+            tempUserLogin = data.user;
+            document.getElementById('box-login-p1').classList.remove('active');
+
+            if (data.requerTrocaSenha) {
+                document.getElementById('box-login-forcepass').classList.add('active');
+            } else if (data.requer2FA) {
+                document.getElementById('box-login-2fa').classList.add('active');
+                if (data.configurando2FA) {
+                    document.getElementById('setup-2fa-area').style.display = 'block';
+                    document.getElementById('img-qrcode-2fa').src = data.qrCode;
+                    document.getElementById('text-secret-2fa').innerText = data.secretCode;
+                } else {
+                    document.getElementById('setup-2fa-area').style.display = 'none';
+                }
+            } else {
+                guardarSessao(data);
+            }
+        } catch(e) { err.style.display='block'; err.innerText = 'Falha de comunicação com o servidor de autenticação.'; }
+    }
+
+    async function loginVerificar2fa() {
+        const token2fa = document.getElementById('iptToken2fa').value;
+        const err = document.getElementById('login-err-2fa');
+        err.style.display = 'none';
+        try {
+            const res = await fetch('/api/login/verificar-2fa', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario: tempUserLogin, token2fa}) });
+            const data = await res.json();
+            if (res.ok && data.sucesso) {
+                document.getElementById('box-login-2fa').classList.remove('active');
+                guardarSessao(data);
+            } else { err.style.display='block'; err.innerText = data.erro; }
+        } catch(e) { err.style.display='block'; err.innerText = 'Erro ao validar Token de Segurança.'; }
+    }
+
+    async function alterarSenhaObrigatoria() {
+        const novaSenha = document.getElementById('iptNewPass').value;
+        if (!novaSenha) return alert('Insira a nova senha para prosseguir.');
+        try {
+            const res = await fetch('/api/usuarios/alterar-senha-inicial', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario: tempUserLogin, novaSenha}) });
+            const data = await res.json();
+            if (res.ok && data.sucesso) {
+                document.getElementById('box-login-forcepass').classList.remove('active');
+                guardarSessao(data);
+            }
+        } catch(e) { alert('Falha ao atualizar credenciais no banco de dados.'); }
+    }
+
+    function guardarSessao(data) {
+        localStorage.setItem('zeusToken', data.token);
+        localStorage.setItem('zeusRole', data.role);
+        localStorage.setItem('zeusUser', data.user);
+        location.reload();
+    }
+
+    function executarLogout() { localStorage.clear(); location.reload(); }
+    function getHeaders() { return { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('zeusToken') }; }
+
+    function inicializarModulos() {
+        carregarCanais();
+        carregarCampanhas();
+        if(userRole === 'admin') carregarUsuariosAdm();
+        if(!pollInterval) pollInterval = setInterval(carregarCampanhas, 3000);
+    }
+
+    // ==========================================
+    // CANAIS E SINCRONIZAÇÃO HÍBRIDA (QR/PIN)
+    // ==========================================
+    async function carregarCanais() {
+        const res = await fetch('/api/instancias', { headers: getHeaders() });
+        const data = await res.json();
+        const tbody = document.getElementById('lista-canais-corpo');
+        const selectDisp = document.getElementById('selRemetenteCampanha');
+        
+        tbody.innerHTML = ''; selectDisp.innerHTML = '<option value="">Escolha a Instância para Disparo...</option>';
+        if(data.limites) document.getElementById('lbl-limite-conn').innerText = `Contrato de Infraestrutura: ${data.limites.conexoesMax} conexões máximas e ${data.limites.limiteDiario} envios diários permitidos.`;
+
+        data.instancias.forEach(c => {
+            let badge = c.status === 'open' ? `<span class="badge badge-open">🟢 ATIVO ONLINE</span>` : `<span class="badge badge-closed">🔴 DESCONECTADO</span>`;
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td><b style="font-family:'Orbitron', sans-serif; letter-spacing:1px; font-size:16px;">${c.idExibicao}</b></td><td>${c.numero}</td><td>${badge}</td>
+                <td>
+                    <button class="btn-blue btn-inline" onclick="reiniciarMotor('${c.nome}')">Reboot Conexão</button>
+                    <button class="btn-gray btn-inline" onclick="alterarStatusCanal('${c.nome}', 'logout')">Suspender</button>
+                    <button class="btn-red btn-inline" onclick="alterarStatusCanal('${c.nome}', 'deletar')">Deletar</button>
+                </td>`;
+            tbody.appendChild(tr);
+            if(c.status === 'open') {
+                selectDisp.add(new Option(`${c.idExibicao} (${c.numero})`, c.nome));
+            }
+        });
+    }
+
+    async function requisitarQrCode() {
+        document.getElementById('pin-area').style.display = 'none';
+        document.getElementById('qr-area').style.display = 'block';
+        document.getElementById('txt-qr').innerHTML = 'Gerando túnel criptografado exclusivo...';
+        const res = await fetch('/api/criar-instancia', { method:'POST', headers:getHeaders() });
+        const data = await res.json();
+        if(data.sucesso) {
+            document.getElementById('txt-qr').innerHTML = `Leia o QR Code abaixo com o WhatsApp do aparelho.<br><br><span style="color:var(--zeus-blue); font-size:20px; font-family:'Orbitron', sans-serif;">ID DO CANAL: <b>${data.idGerado}</b></span>`;
+            document.getElementById('img-qr').src = data.qrcode;
+            setTimeout(carregarCanais, 5000);
+        } else { alert(data.erro); document.getElementById('qr-area').style.display='none'; }
+    }
+
+    function abrirModalPin() {
+        document.getElementById('modal-novo-pin').style.display = 'flex';
+        document.getElementById('iptModalNumeroPin').value = '';
+    }
+
+    function fecharModalPin() {
+        document.getElementById('modal-novo-pin').style.display = 'none';
+    }
+
+    async function confirmarPin() {
+        const num = document.getElementById('iptModalNumeroPin').value;
+        if(!num) return alert('Digite o número do WhatsApp válido.');
+        fecharModalPin();
+        
+        document.getElementById('qr-area').style.display = 'none';
+        document.getElementById('pin-area').style.display = 'block';
+        document.getElementById('txt-pin').innerHTML = 'Estabelecendo handshake remoto e solicitando PIN de pareamento...';
+        document.getElementById('display-pin').style.display = 'none';
+        
+        const res = await fetch('/api/criar-instancia-pin', { method:'POST', headers:getHeaders(), body: JSON.stringify({ numeroTelefone: num }) });
+        const data = await res.json();
+        
+        if(data.sucesso) {
+            document.getElementById('txt-pin').innerHTML = `No WhatsApp, vá em <b>Aparelhos Conectados</b> > <b>Conectar com número de telefone</b>.<br>Insira o código de segurança abaixo.<br><br><span style="color:var(--zeus-blue); font-size:18px; font-family:'Orbitron', sans-serif;">ID DO CANAL: <b>${data.idGerado}</b></span>`;
+            document.getElementById('display-pin').innerText = data.pairingCode;
+            document.getElementById('display-pin').style.display = 'inline-block';
+            setTimeout(carregarCanais, 8000);
+        } else { 
+            alert(data.erro); 
+            document.getElementById('pin-area').style.display='none'; 
+        }
+    }
+
+    async function alterarStatusCanal(nome, acao) {
+        const res = await fetch(`/api/instancia/${acao}`, { method:'POST', headers:getHeaders(), body:JSON.stringify({nomeInstancia: nome}) });
+        if(res.ok) carregarCanais();
+    }
+
+    async function reiniciarMotor(nome) {
+        alert('Enviando comando de reinício profundo para a API. O túnel deve estabilizar e retomar a sincronia de pacotes em aproximadamente 10 segundos.');
+        await fetch('/api/instancia/reiniciar', { method:'POST', headers:getHeaders(), body:JSON.stringify({nomeInstancia: nome}) });
+        setTimeout(carregarCanais, 5000);
+    }
+
+    // ==========================================
+    // DISPAROS EM MASSA E CONSTRUTOR
+    // ==========================================
+    function criarBlocoTexto() {
+        const id = bCount++;
+        const div = document.createElement('div'); div.className = 'msg-block'; div.id = `blc-${id}`;
+        div.innerHTML = `<button class="remove-btn" onclick="removerBloco(${id})">X</button><label style="color:var(--zeus-blue); font-weight:bold;">📝 Bloco de Texto:</label><textarea placeholder="Digite sua mensagem de texto para a esteira..." oninput="salvarBloco(${id}, 'texto', this.value)"></textarea>`;
+        document.getElementById('bloco-mensagens-esteira').appendChild(div);
+        gradeCampanha.push({ id, tipo:'texto', texto:'' });
+    }
+
+    function criarBlocoMedia() {
+        const id = bCount++;
+        const div = document.createElement('div'); div.className = 'msg-block'; div.id = `blc-${id}`;
+        div.innerHTML = `<button class="remove-btn" onclick="removerBloco(${id})">X</button><label style="color:var(--zeus-green); font-weight:bold;">📂 Bloco de Arquivo/Mídia:</label><input type="file" accept="image/*, .pdf" style="background:rgba(0,0,0,0.5); padding:8px;" onchange="conversaoBase64(${id}, this)"><label style="margin-top:10px; display:block;">Legenda do Arquivo:</label><textarea placeholder="Legenda opcional..." oninput="salvarBloco(${id}, 'legenda', this.value)"></textarea>`;
+        document.getElementById('bloco-mensagens-esteira').appendChild(div);
+        gradeCampanha.push({ id, tipo:'media', base64:null, fileName:'', mimeType:'', legenda:'' });
+    }
+
+    function removerBloco(id) { document.getElementById(`blc-${id}`).remove(); gradeCampanha = gradeCampanha.filter(g => g.id !== id); atualizarPreviewCelular(); }
+    function salvarBloco(id, campo, valor) { const item = gradeCampanha.find(g => g.id === id); if(item) item[campo] = valor; atualizarPreviewCelular(); }
+    
+    function conversaoBase64(id, input) {
+        if(!input.files[0]) return;
+        const file = input.files[0]; const reader = new FileReader();
+        reader.onload = function(e) {
+            const item = gradeCampanha.find(g => g.id === id);
+            if(item) { item.base64 = e.target.result; item.fileName = file.name; item.mimeType = file.type; atualizarPreviewCelular(); }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function atualizarPreviewCelular() {
+        const chat = document.getElementById('preview-chat-celular'); chat.innerHTML = '';
+        gradeCampanha.forEach(g => {
+            let b = document.createElement('div'); b.className = 'balao';
+            if(g.tipo === 'texto') b.innerText = g.texto || '...';
+            else b.innerHTML = `<div class="balao-media">📄 ${g.fileName || 'Arquivo Anexado'}</div><div style="margin-top:4px;">${g.legenda || ''}</div>`;
+            chat.appendChild(b);
+        });
+    }
+
+    async function dispararCampanha(modo) {
+        const canal = document.getElementById('selRemetenteCampanha').value;
+        const nomeCamp = document.getElementById('nomeCampanha').value;
+        const boxStatus = document.getElementById('box-envio-status');
+
+        if(!canal || !nomeCamp) return alert('Selecione o canal ativo e nomeie a campanha na infraestrutura.');
+        boxStatus.style.display = 'block'; boxStatus.style.background = 'rgba(0, 229, 255, 0.1)'; boxStatus.style.borderColor = 'var(--zeus-blue)'; boxStatus.style.color = 'var(--zeus-blue)'; boxStatus.innerText = 'Processando dados de disparo e enviando para o cluster...';
+
+        let url, bodyData;
+        if(modo === 'manual') {
+            let stringNumerosRaw = document.getElementById('txtNumerosManuais').value;
+            let numerosFiltradosEParseados = stringNumerosRaw.replace(/[\n;\s]+/g, ',').replace(/,,+/g, ',');
+            
+            url = '/api/campanhas/criar-manual';
+            bodyData = JSON.stringify({ nome: nomeCamp, remetente: canal, numeros: numerosFiltradosEParseados, sequencia: gradeCampanha });
+        } else {
+            const fileInput = document.getElementById('fileExcelCampanha');
+            if(!fileInput.files[0]) return alert('Selecione o arquivo Excel de banco de dados.');
+            url = '/api/campanhas/criar-planilha';
+            bodyData = new FormData();
+            bodyData.append('nome', nomeCamp);
+            bodyData.append('remetente', canal);
+            bodyData.append('sequencia', JSON.stringify(gradeCampanha));
+            bodyData.append('planilha', fileInput.files[0]);
+        }
+
+        const headers = modo === 'manual' ? getHeaders() : { 'Authorization': 'Bearer ' + localStorage.getItem('zeusToken') };
+        const res = await fetch(url, { method:'POST', headers, body: bodyData });
+        const data = await res.json();
+
+        if(data.sucesso) {
+            boxStatus.style.background = 'rgba(0, 230, 118, 0.2)'; boxStatus.style.borderColor = 'var(--zeus-green)'; boxStatus.style.color = 'var(--zeus-green)'; boxStatus.innerText = 'Campanha injetada com Sucesso no motor de disparo!';
+            carregarCampanhas();
+        } else { 
+            boxStatus.style.background = 'rgba(255, 23, 68, 0.2)'; boxStatus.style.borderColor = 'var(--zeus-red)'; boxStatus.style.color = 'var(--zeus-red)'; boxStatus.innerText = data.erro; 
+        }
+    }
+
+    async function carregarCampanhas() {
+        if(!localStorage.getItem('zeusToken')) return;
+        const res = await fetch('/api/campanhas', { headers: getHeaders() });
+        const data = await res.json();
+        const tbody = document.getElementById('lista-campanhas-corpo');
+        tbody.innerHTML = '';
+
+        data.campanhas.forEach(c => {
+            let btnRelatorios = c.status === 'Concluída' ? 
+                `<button class="btn-blue btn-inline" style="background:var(--bg-input); border:1px solid var(--zeus-blue); color:var(--zeus-blue);" onclick="window.open('/api/campanhas/${c.id}/excel?authorization=Bearer '+localStorage.getItem('zeusToken'))">📊 Exportar Excel</button>
+                 <button class="btn-gray btn-inline" style="border:1px solid var(--zeus-green); color:var(--zeus-green);" onclick="window.open('/api/campanhas/${c.id}/pdf?authorization=Bearer '+localStorage.getItem('zeusToken'))">📄 PDF</button>` : 
+                `<span style="color:var(--zeus-blue); font-size:12px; font-weight:bold; letter-spacing:1px; animation: blinker 1.5s linear infinite;">Em Fila / Processando...</span>`;
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${c.data}</td>
+                <td><b style="color:white; font-family:'Rajdhani', sans-serif; font-size:16px;">${c.nome.toUpperCase()}</b></td>
+                <td><span style="background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; font-family:'Orbitron', sans-serif; font-size:12px;">${c.remetente.split('-')[1].toUpperCase()}</span></td>
+                <td><span style="color:${c.status === 'Concluída' ? 'var(--zeus-green)' : 'var(--zeus-blue)'}; font-weight:bold;">${c.status}</span></td>
+                <td>
+                    <div style="font-size:12px; margin-bottom:4px; color:var(--text-main);">Processados: <b>${c.processados} / ${c.totalContatos}</b> (${c.progresso}%)</div>
+                    <div class="progress-container"><div class="progress-bar" style="width:${c.progresso}%"></div></div>
+                </td>
+                <td>${btnRelatorios}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ==========================================
+    // PAINEL ADMINISTRATIVO E GESTÃO SAAS
+    // ==========================================
+    async function carregarUsuariosAdm() {
+        const res = await fetch('/api/admin/usuarios', { headers: getHeaders() });
+        const data = await res.json();
+        const tbody = document.getElementById('lista-usuarios-adm-corpo');
+        tbody.innerHTML = '';
+
+        data.usuarios.forEach(u => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b style="font-size:15px; color:white;">${u.nome}</b><br><span style="color:var(--zeus-blue); font-size:12px; font-family:'Orbitron', sans-serif;">Ref: ${u.codigoInterno || 'N/A'}</span></td>
+                <td><code style="background:rgba(0,0,0,0.5); padding:4px 8px; border-radius:4px; color:var(--zeus-green); border:1px solid rgba(0,230,118,0.2);">${u.usuario}</code></td>
+                <td><span class="badge badge-open" style="background:rgba(176,0,255,0.1); color:var(--zeus-purple); border-color:var(--zeus-purple); box-shadow:0 0 10px rgba(176,0,255,0.2);">${u.tipoUsuario}</span><br><span style="color:var(--text-muted); font-size:12px; display:inline-block; margin-top:5px;">${u.email}</span></td>
+                <td style="font-size:13px;"><span style="color:var(--text-muted);">Channels:</span> <b>${u.conexoesMax}</b><br><span style="color:var(--text-muted);">Envios:</span> <b>${u.limiteDiario}</b>/dia</td>
+                <td>
+                    <button class="btn-blue btn-inline" style="background: linear-gradient(90deg, #650099, var(--zeus-purple)); color:white; border:none; box-shadow: 0 0 10px rgba(176,0,255,0.4);" onclick="emularSessao('${u.usuario}')">⚡ Emular Sessão</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function criarUsuarioSaaS() {
+        const payload = {
+            nome: document.getElementById('admNomeCompleto').value,
+            usuario: document.getElementById('admUser').value,
+            senhaInicial: document.getElementById('admPass').value,
+            email: document.getElementById('admEmail').value,
+            telefone: document.getElementById('admTelefone').value,
+            tipoUsuario: document.getElementById('admTipoUsuario').value,
+            codigoInterno: document.getElementById('admCodigoInterno').value,
+            conexoesMax: document.getElementById('admMaxConn').value,
+            limiteDiario: document.getElementById('admMaxEnvios').value
+        };
+
+        if(!payload.usuario || !payload.senhaInicial) return alert('Campos de Login e Senha são cruciais de preenchimento obrigatório no banco.');
+
+        const res = await fetch('/api/admin/usuarios/criar', { method:'POST', headers:getHeaders(), body:JSON.stringify(payload) });
+        if(res.ok) { 
+            alert('Novo usuário provisionado no servidor com sucesso!'); 
+            carregarUsuariosAdm();
+            document.getElementById('admNomeCompleto').value = '';
+            document.getElementById('admUser').value = '';
+            document.getElementById('admPass').value = '';
+            document.getElementById('admEmail').value = '';
+            document.getElementById('admTelefone').value = '';
+            document.getElementById('admCodigoInterno').value = '';
+        }
+    }
+
+    async function emularSessao(alvo) {
+        const res = await fetch('/api/admin/impersonate', { method:'POST', headers:getHeaders(), body:JSON.stringify({usuarioTarget: alvo}) });
+        const data = await res.json();
+        if(data.sucesso) {
+            localStorage.setItem('zeusToken', data.token);
+            localStorage.setItem('zeusRole', data.role);
+            localStorage.setItem('zeusUser', data.user);
+            localStorage.setItem('zeusImpersonated', 'true');
+            location.reload();
+        }
+    }
+
+    function cancelarEmulacao() { localStorage.clear(); location.reload(); }
+</script>
+>>>>>>> 32a25d703efa050d3920c180ff263d9683117282
 </body>
 </html>

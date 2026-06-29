@@ -53,15 +53,7 @@ services:
     depends_on:
       - evolution-api
     restart: always
-    environment:
-      - NODE_OPTIONS=--max-old-space-size=512
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
 
 volumes:
-  mongodb_test_data:
-  redis_test_data:
+  mongodb_data:
+  redis_data:
